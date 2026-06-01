@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────
+   CyberSteam — Cyberpunk Design System
+   Tailwind v4 CSS-first @theme configuration
+───────────────────────────────────────────── */
+@theme inline {
+  /* ── Base palette ── */
+  --color-cyber-black:   #050508;
+  --color-cyber-dark:    #0d0d14;
+  --color-cyber-surface: #13131f;
+  --color-cyber-border:  #1e1e30;
+
+  /* ── Neon accents ── */
+  --color-neon-cyan:     #00f5ff;
+  --color-neon-cyan-dim: #00c4cc;
+  --color-neon-magenta:  #ff00ff;
+  --color-neon-magenta-dim: #cc00cc;
+  --color-neon-yellow:   #f5e642;
+  --color-neon-yellow-dim: #c4b82e;
+  --color-neon-purple:   #bf5fff;
+
+  /* ── Text ── */
+  --color-text-primary:  #e8e8f0;
+  --color-text-muted:    #6b6b8a;
+
+  /* ── Fonts ── */
+  --font-sans: var(--font-geist-sans), "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), "Fira Code", monospace;
+
+  /* ── Background / foreground ── */
+  --color-background: var(--color-cyber-black);
+  --color-foreground: var(--color-text-primary);
+}
+
+/* ─────────────────────────────────────────────
+   Global resets & defaults
+───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  scrollbar-color: var(--color-cyber-border) var(--color-cyber-dark);
+}
+
+body {
+  background-color: var(--color-cyber-black);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  min-height: 100svh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─────────────────────────────────────────────
+   Neon glow utilities (used on landing page)
+───────────────────────────────────────────── */
+.glow-cyan {
+  color: var(--color-neon-cyan);
+  text-shadow:
+    0 0 10px var(--color-neon-cyan),
+    0 0 30px var(--color-neon-cyan),
+    0 0 60px var(--color-neon-cyan-dim),
+    0 0 120px var(--color-neon-cyan-dim);
+}
+
+.glow-magenta {
+  color: var(--color-neon-magenta);
+  text-shadow:
+    0 0 10px var(--color-neon-magenta),
+    0 0 30px var(--color-neon-magenta),
+    0 0 60px var(--color-neon-magenta-dim),
+    0 0 120px var(--color-neon-magenta-dim);
+}
+
+.glow-yellow {
+  color: var(--color-neon-yellow);
+  text-shadow:
+    0 0 8px var(--color-neon-yellow),
+    0 0 20px var(--color-neon-yellow),
+    0 0 50px var(--color-neon-yellow-dim);
+}
+
+/* Scanline overlay effect */
+.scanlines::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Animated neon flicker */
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  92%       { opacity: 1; }
+  93%       { opacity: 0.7; }
+  94%       { opacity: 1; }
+  96%       { opacity: 0.85; }
+  97%       { opacity: 1; }
+}
+
+.flicker {
+  animation: neon-flicker 5s infinite;
+}
+
+/* Subtle pulse for glow halos */
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 12px var(--color-neon-cyan));
+  }
+  50% {
+    filter: brightness(1.15) drop-shadow(0 0 28px var(--color-neon-cyan));
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Grid background pattern */
+.grid-bg {
+  background-image:
+    linear-gradient(var(--color-cyber-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-cyber-border) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
