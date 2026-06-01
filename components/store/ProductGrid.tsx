@@ -72,7 +72,7 @@ const ACCOUNTS: Account[] = [
 /* ── Component ── */
 export default function ProductGrid() {
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 pb-24 md:px-8">
+    <section id="marketplace" className="mx-auto w-full max-w-7xl px-4 pb-24 md:px-8">
 
       {/* Section header */}
       <div className="mb-10 flex flex-col gap-2">

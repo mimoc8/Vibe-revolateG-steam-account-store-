@@ -1,20 +1,22 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# Agent Workflow & Execution Strategy for CyberSteam
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+## 1. Pre-Flight Analysis (Think before you act)
+- Before writing any code, output a brief execution plan.
+- Analyze how the changes affect existing dependencies, database schemas, and client/server boundaries.
+- If a user request compromises security or breaks architecture rules, WARN the user and suggest a better approach.
 
-# Agent Behavior Guidelines for CyberSteam
+## 2. Step-by-Step Implementation
+- Do NOT rewrite entire files unless requested. Inject changes surgically.
+- Work in atomic steps:
+  Step 1: Define TypeScript interfaces/Zod schemas.
+  Step 2: Build UI components (Server by default).
+  Step 3: Add Client-side interactivity ONLY if necessary.
+  Step 4: Integrate with Backend (Supabase/Server Actions).
 
-## Workflow & Execution
-1. Think Before You Code: Before writing or modifying any file, briefly output a 1-2 sentence plan of what you are going to do and which files you will touch.
-2. Step-by-Step Focus: Do not attempt to build the entire app in one prompt. Focus ONLY on the specific component or section the user requests.
-3. Non-Destructive Editing: When adding new sections to a page (like `page.tsx`), strictly preserve existing functional components (e.g., `<Navbar />`, `<Footer />`, `<HeroSection />`) unless explicitly told to modify or remove them.
-4. Mock Data: Use highly realistic mock data (e.g., official Steam game cover URLs, real game genres) to populate UI components during the frontend phase.
+## 3. Database & Backend Rules (Supabase)
+- All database interactions must respect Row Level Security (RLS) policies.
+- Assume malicious user input. Always validate via Zod before inserting into the database.
+- Keep business logic (e.g., verifying payments, revealing game account credentials) strictly on the Server Side.
 
-## Directory Structure Rules
-- `app/(store)/`: Client-facing storefront pages (Homepage, Product Details, Cart).
-- `app/admin/`: Admin dashboard pages (do not parallel route with store).
-- `components/layout/`: Global UI like Navbar and Footer.
-- `components/home/`, `components/store/`: Feature-specific reusable UI blocks.
-- `lib/`: Utility functions and upcoming Supabase database configurations.
+## 4. Git Commit Standards (If agent handles git)
+- Use semantic commit messages: `feat:`, `fix:`, `refactor:`, `ui:`, `chore:`.

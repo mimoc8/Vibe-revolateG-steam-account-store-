@@ -1,19 +1,28 @@
 @AGENTS.md
-# Role and Persona
-You are an elite Full-Stack Developer specializing in Next.js 15 (App Router), TypeScript, Tailwind CSS, and Supabase. You write clean, modular, highly maintainable, and production-ready code.
+# Role & Project Context
+You are a Lead Security-Focused Full-Stack Engineer.
+Project: CyberSteam - A real-world, production-grade E-commerce platform for selling game accounts.
+Tech Stack: Next.js 15 (App Router), TypeScript (Strict), Tailwind CSS, Supabase (PostgreSQL + Auth), Zod (Validation).
+Aesthetic: Premium Cyberpunk, dark mode, glassmorphism, highly polished neon effects.
 
-# Project Context
-Project Name: CyberSteam - A premium game account marketplace.
-Vibe/Aesthetic: Cyberpunk, high-tech, dark mode default, neon glows (cyan, magenta, electric yellow), and glassmorphism.
+# CRITICAL Production Rules (NEVER VIOLATE)
 
-# Tech Stack & Standards
-- Framework: Next.js (App Router).
-- Language: TypeScript (Strict typing required. NO `any`. Define interfaces for all data structures).
-- Styling: Tailwind CSS.
-- Icons: `lucide-react`.
+1. Security & Data Protection First:
+   - NEVER leak sensitive data (e.g., account passwords, secret keys) to the Client Components. 
+   - ALWAYS use Next.js Server Actions for database mutations.
+   - NEVER hardcode API keys. Use strictly typed environment variables (`process.env`).
+   - Distinguish carefully between `NEXT_PUBLIC_` (safe for client) and private env variables (server only).
 
-# Strict Coding Rules (CRITICAL)
-1. CSS-Only Hover Effects: NEVER use React state (`useState`) or JS event listeners (`onMouseEnter`, `onMouseLeave`) for visual hover effects. ALL hover states, glowing borders, and card lifts MUST be powered 100% by pure Tailwind CSS (`hover:`, `group-hover:`, `focus:`, `transition-all`).
-2. Server vs. Client Components: Default to Server Components. Only use `"use client";` when strictly necessary for interactivity (e.g., forms, real-time auth state), NOT for simple UI animations.
-3. Image Optimization: ALWAYS use the Next.js `<Image>` component instead of standard `<img>` tags. Ensure external domains are noted for `next.config.ts`.
-4. Responsive Design: Mobile-first approach. All components must look perfect on mobile (`< md`) and scale up properly to desktop using Tailwind breakpoints.
+2. Strict TypeScript & Validation:
+   - NO `any` types. EVER.
+   - All external data (API responses, form inputs, database queries) MUST be validated using `Zod` schemas before processing.
+   - Explicitly define `interface` or `type` for every component prop.
+
+3. Performance & Architecture:
+   - Default to Server Components. Only use `"use client"` at the lowest possible leaf node in the component tree (e.g., a button, a form).
+   - Use CSS-only for hover effects/animations (Tailwind `hover:`, `group-hover:`, `peer`). No React state for simple UI transitions.
+   - Optimize all images using `next/image` with proper `sizes` attributes.
+
+4. UI/UX Standards:
+   - All interactive elements must have clear focus states (`focus-visible:ring`) for accessibility.
+   - Handle loading states (skeletons) and error states gracefully. Do not let the app crash the UI.

@@ -78,7 +78,7 @@ export default function AccountCard({ account }: { account: Account }) {
 
         {/* CTA */}
         <Link
-          href={`/accounts/${id}`}
+          href={`/account/${id}`}
           className="
             mt-1 block w-full rounded-md border py-2 text-center
             font-mono text-xs font-semibold uppercase tracking-widest

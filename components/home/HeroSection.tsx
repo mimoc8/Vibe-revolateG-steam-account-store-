@@ -1,4 +1,3 @@
-import Link from "next/link";
 
 export default function HeroSection() {
   return (
@@ -67,8 +66,8 @@ export default function HeroSection() {
         </p>
 
         {/* ── CTA Button — pure CSS hover via Tailwind ── */}
-        <Link
-          href="/accounts"
+        <a
+          href="#marketplace"
           id="hero-cta"
           className="
             mt-2 inline-flex items-center gap-2 rounded-md px-8 py-3
@@ -82,7 +81,7 @@ export default function HeroSection() {
           "
         >
           Explore Accounts
-        </Link>
+        </a>
       </div>
 
       {/* Bottom fade to black */}
