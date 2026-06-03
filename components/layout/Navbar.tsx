@@ -42,6 +42,12 @@ export default function Navbar() {
   useEffect(() => {
     const supabase = createClient();
 
+    // ── Helper: fetch and apply the latest profile for the current user ──────
+    async function refetchProfile(authUser: SupabaseUser) {
+      const refreshed = await fetchProfile(authUser.id);
+      setProfile(refreshed);
+    }
+
     // Fetch initial session and profile
     supabase.auth.getUser().then(async ({ data }) => {
       const authUser = data.user ?? null;
@@ -61,7 +67,22 @@ export default function Navbar() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // ── Real-time profile sync ───────────────────────────────────────────────
+    // ProfileForm dispatches this custom event after a successful save so the
+    // Navbar re-fetches immediately without waiting for a full page reload.
+    // `router.refresh()` alone only re-runs Server Components; it does NOT
+    // trigger Client Component useEffects, hence this extra listener.
+    const handleProfileUpdated = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) await refetchProfile(data.user);
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdated);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('profile-updated', handleProfileUpdated);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -75,13 +96,19 @@ export default function Navbar() {
   // Derive display values from profile (DB source of truth).
   // Fall back to auth metadata in case the trigger hasn't fired yet.
   const displayName: string =
-    profile?.full_name ??
-    (user?.user_metadata?.full_name as string | undefined) ??
-    (user?.user_metadata?.name as string | undefined) ??
-    user?.email?.split('@')[0] ??
+    profile?.full_name?.trim() ||
+    (user?.user_metadata?.full_name as string | undefined)?.trim() ||
+    (user?.user_metadata?.name as string | undefined)?.trim() ||
+    user?.email?.split('@')[0] ||
     'Agent';
 
-  const avatarUrl: string | null = profile?.avatar_url ?? null;
+  // Priority: profiles.avatar_url → user_metadata.avatar_url → user_metadata.picture (Google)
+  const avatarUrl: string | null =
+    profile?.avatar_url?.trim() ||
+    (user?.user_metadata?.avatar_url as string | undefined)?.trim() ||
+    (user?.user_metadata?.picture as string | undefined)?.trim() ||
+    null;
+
   const avatarLabel = displayName[0]?.toUpperCase() ?? '?';
 
   return (
@@ -174,14 +201,18 @@ export default function Navbar() {
               ) : user ? (
                 /* ── Authenticated: avatar chip + logout ── */
                 <div className="flex items-center gap-2">
-                  {/* Avatar chip */}
-                  <div
+                  {/* Avatar chip — links to /profile */}
+                  <Link
+                    href="/profile"
                     id="nav-user-avatar"
                     className="
                       flex h-9 items-center gap-2 rounded-md border px-2.5
                       border-cyan-500/30 bg-cyan-500/10
+                      transition-all duration-200
+                      hover:border-cyan-400/60 hover:bg-cyan-500/15
+                      hover:shadow-[0_0_12px_rgba(0,245,255,0.15)]
                     "
-                    title={profile?.email ?? user.email ?? undefined}
+                    title={`View profile · ${profile?.email ?? user?.email ?? ''}`}
                   >
                     {avatarUrl ? (
                       <Image
@@ -206,7 +237,7 @@ export default function Navbar() {
                     <span className="hidden max-w-[100px] truncate font-mono text-xs text-cyan-200/80 md:block">
                       {displayName}
                     </span>
-                  </div>
+                  </Link>
 
                   {/* Logout */}
                   <button

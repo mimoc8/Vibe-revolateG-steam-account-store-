@@ -56,6 +56,17 @@ export async function middleware(request: NextRequest) {
     // if (!isAdmin) return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // /profile/* — require authenticated session (defense-in-depth; the
+  // Server Component re-validates independently with getUser()).
+  if (pathname.startsWith('/profile')) {
+    if (!user) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = '/';
+      redirectUrl.searchParams.set('auth_required', '1');
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
   return response;
 }
 
@@ -70,5 +81,7 @@ export const config = {
      * - /api/* (handled per-route)
      */
     '/admin/:path*',
+    '/profile/:path*',
+    '/profile',
   ],
 };

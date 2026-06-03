@@ -32,11 +32,33 @@ export const nextParamSchema = z
 
 // ── Profile ─────────────────────────────────────────────────────────────────
 
+/**
+ * Allowed characters: Any Unicode letter (including Vietnamese ÃƠÐ…), digits,
+ * whitespace, and underscore. Explicitly blocks HTML/script tags because
+ * angle brackets (<, >) are not letters, digits, whitespace, or underscores.
+ *
+ * \p{L}  = any Unicode letter (covers a-z, A-Z, á, ổ, đ, ễ, 漢, etc.)
+ * \d     = 0-9
+ * \s     = whitespace (space, tab — trim() will clean leading/trailing)
+ * _      = underscore literal
+ *
+ * The `u` flag is required for Unicode property escapes to work.
+ * Exported so the client mirrors exactly the same rule.
+ */
+export const DISPLAY_NAME_REGEX = /^[\p{L}\d\s_]+$/u;
+
 export const profileUpdateSchema = z.object({
   full_name: z
     .string()
-    .min(1, 'Name cannot be empty')
-    .max(100, 'Name must be 100 characters or fewer')
+    .min(3, 'Tên phải có ít nhất 3 ký tự.')
+    .max(30, 'Tên không được vượt quá 30 ký tự.')
+    .regex(
+      DISPLAY_NAME_REGEX,
+      'Tên chỉ được chứa chữ cái (kể cả tiếng Việt), số, dấu gạch dưới và khoảng trắng.',
+    )
+    .refine((val) => val.trim().length > 0, {
+      message: 'Tên hiển thị không được chỉ chứa khoảng trắng.',
+    })
     .trim(),
   avatar_url: z
     .string()
