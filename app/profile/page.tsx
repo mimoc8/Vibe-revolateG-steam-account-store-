@@ -5,8 +5,8 @@ import { resolveProfile } from '@/lib/profile';
 import ProfileForm from './_components/ProfileForm';
 
 export const metadata: Metadata = {
-  title: 'My Profile',
-  description: 'Manage your CyberSteam account profile and display name.',
+  title: 'Hồ Sơ Của Tôi · CyberSteam',
+  description: 'Quản lý tài khoản CyberSteam của bạn.',
 };
 
 /**
@@ -18,11 +18,7 @@ export const metadata: Metadata = {
  *
  * Data strategy:
  * - Fetches the `profiles` DB row for the authenticated user.
- * - If no row exists yet (brand-new OAuth user), seeds a baseline row using
- *   their OAuth metadata (name + avatar from Google/GitHub/etc.) so the form
- *   pre-fills instead of showing "Anonymous Operator".
- * - Uses `resolveProfile()` to merge DB row + OAuth metadata with a
- *   consistent priority chain — same logic the Navbar uses.
+ * - Joins purchases → market_items so the order history is real data.
  */
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -37,23 +33,32 @@ export default async function ProfilePage() {
     redirect('/');
   }
 
-  // ── 2. Fetch profiles row ───────────────────────────────────────────────
-  const { data: dbRow, error: profileError } = await supabase
-    .from('profiles')
-    .select('full_name, avatar_url')
-    .eq('id', user.id)
-    .single();
+  // ── 2. Fetch profile + purchases in parallel ────────────────────────────
+  const [profileResult, purchasesResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name, avatar_url')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('purchases')
+      .select(`
+        id,
+        purchased_at,
+        market_items (
+          id,
+          title,
+          price,
+          image_url
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('purchased_at', { ascending: false }),
+  ]);
 
-  // ── 3. Seed missing row with OAuth metadata ─────────────────────────────
-  //
-  // `profileError` fires when no row exists (PGRST116 "no rows returned").
-  // We resolve the display values FIRST (using OAuth metadata as fallback),
-  // then upsert that resolved data so future fetches — and the Navbar — pick
-  // up a real row immediately without needing the user to save manually.
-  if (profileError) {
+  // ── 3. Seed missing profile row with OAuth metadata ─────────────────────
+  if (profileResult.error) {
     const resolved = resolveProfile(user, null);
-
-    // Fire-and-forget — a failure here is non-fatal; the page still renders.
     supabase
       .from('profiles')
       .upsert(
@@ -70,11 +75,9 @@ export default async function ProfilePage() {
       });
   }
 
-  // ── 4. Merge DB + OAuth metadata through the shared resolver ─────────────
-  const resolved = resolveProfile(user, dbRow ?? null);
+  // ── 4. Merge DB + OAuth metadata ────────────────────────────────────────
+  const resolved = resolveProfile(user, profileResult.data ?? null);
 
-  // `email` is always sourced from the verified auth user — never from the
-  // DB row — to prevent a tampered DB column from leaking to the client.
   const profileData = {
     id: user.id,
     email: user.email ?? '',
@@ -82,5 +85,25 @@ export default async function ProfilePage() {
     avatar_url: resolved.avatar_url,
   };
 
-  return <ProfileForm profile={profileData} />;
+  // ── 5. Shape purchases (guard deleted items) ────────────────────────────
+  type PurchaseRow = {
+    id: string;
+    purchased_at: string;
+    market_items: {
+      id: string;
+      title: string;
+      price: number;
+      image_url: string | null;
+    } | null;
+  };
+
+  const rawPurchases = (purchasesResult.data ?? []) as unknown as PurchaseRow[];
+
+  const purchases = rawPurchases.map((p) => ({
+    id: p.id,
+    purchased_at: p.purchased_at,
+    item: p.market_items,
+  }));
+
+  return <ProfileForm profile={profileData} purchases={purchases} />;
 }

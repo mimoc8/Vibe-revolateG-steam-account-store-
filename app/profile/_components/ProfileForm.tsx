@@ -3,6 +3,7 @@
 import { useActionState, useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { updateProfile, type ActionResult } from '../_actions';
 import { DISPLAY_NAME_REGEX } from '@/lib/validation/schemas';
 import { createClient } from '@/lib/supabase/client';
@@ -19,11 +20,12 @@ import {
   CalendarDays,
   Tag,
   BadgeCheck,
-  Clock,
   AlertTriangle,
   Upload,
   ImagePlus,
   Trash2,
+  PackageCheck,
+  ExternalLink,
 } from 'lucide-react';
 
 // ── Avatar upload constants & helpers ─────────────────────────────────────────
@@ -203,6 +205,18 @@ function validateName(value: string): NameValidationResult {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+/** A single purchase row joined with its market_items data. */
+export interface PurchaseItem {
+  id: string;
+  purchased_at: string;
+  item: {
+    id: string;
+    title: string;
+    price: number;
+    image_url: string | null;
+  } | null;
+}
+
 interface ProfileFormProps {
   profile: {
     id: string;
@@ -210,67 +224,23 @@ interface ProfileFormProps {
     full_name: string | null;
     avatar_url: string | null;
   };
+  /** Real purchase history from the server — empty array when none. */
+  purchases: PurchaseItem[];
 }
 
 type TabId = 'settings' | 'orders';
 
-// ── Mock order history data ──────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
-interface MockOrder {
-  id: string;
-  date: string;
-  item: string;
-  games: string;
-  price: string;
-  status: 'Delivered' | 'Processing' | 'Refunded';
-}
+const vnd = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+const formatVND = (n: number) => vnd.format(n);
 
-const MOCK_ORDERS: MockOrder[] = [
-  {
-    id: 'ORD-7842',
-    date: '2026-05-28',
-    item: 'Steam Account — Triple-A Bundle',
-    games: 'Cyberpunk 2077, Elden Ring, RDR2',
-    price: '$89.99',
-    status: 'Delivered',
-  },
-  {
-    id: 'ORD-7615',
-    date: '2026-04-14',
-    item: 'Steam Account — Indie Starter',
-    games: 'Hollow Knight, Celeste, Hades',
-    price: '$34.50',
-    status: 'Delivered',
-  },
-  {
-    id: 'ORD-7389',
-    date: '2026-03-02',
-    item: 'Steam Account — FPS Pro Pack',
-    games: 'CS2, Valorant, Apex Legends',
-    price: '$59.00',
-    status: 'Delivered',
-  },
-  {
-    id: 'ORD-7210',
-    date: '2026-01-19',
-    item: 'Steam Account — RPG Vault',
-    games: 'Baldur\'s Gate 3, Pathfinder',
-    price: '$47.99',
-    status: 'Refunded',
-  },
-];
-
-const STATUS_STYLES: Record<MockOrder['status'], string> = {
-  Delivered: 'bg-emerald-950/70 text-emerald-400 border-emerald-500/30',
-  Processing: 'bg-amber-950/70 text-amber-400 border-amber-500/30',
-  Refunded: 'bg-red-950/70 text-red-400 border-red-500/30',
-};
-
-const STATUS_ICONS: Record<MockOrder['status'], React.ReactNode> = {
-  Delivered: <BadgeCheck size={11} />,
-  Processing: <Clock size={11} />,
-  Refunded: <XCircle size={11} />,
-};
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
 
 // ── Shared field styles ──────────────────────────────────────────────────────
 
@@ -301,13 +271,18 @@ function AvatarPreview({
   url: string | null;
   fallback: string;
 }) {
+  // If the external URL (Google, Supabase CDN) fails to load, show the
+  // initial-letter fallback so the profile hero never shows a broken image.
+  const [imgError, setImgError] = useState(false);
+  const showImage = url && !imgError;
+
   return (
     <div className="relative group shrink-0">
       <div
         className="w-24 h-24 rounded-full ring-2 ring-neon-cyan/30 ring-offset-2 ring-offset-cyber-surface overflow-hidden flex items-center justify-center bg-cyber-dark transition-all duration-300 group-hover:ring-neon-cyan/60"
         style={{ boxShadow: '0 0 24px rgba(0,245,255,0.12)' }}
       >
-        {url ? (
+        {showImage ? (
           <Image
             src={url}
             alt="Profile avatar"
@@ -315,6 +290,7 @@ function AvatarPreview({
             height={96}
             className="w-full h-full object-cover"
             unoptimized
+            onError={() => setImgError(true)}
           />
         ) : (
           <span className="text-3xl font-bold text-neon-cyan font-mono">{fallback}</span>
@@ -330,7 +306,7 @@ function AvatarPreview({
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export default function ProfileForm({ profile }: ProfileFormProps) {
+export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
   const [activeTab, setActiveTab] = useState<TabId>('settings');
 
   // ── Avatar state ─────────────────────────────────────────────────────────
@@ -502,20 +478,20 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
   }, [state, router]);
 
   const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
-    { id: 'settings', label: 'Account Settings', icon: <Settings2 size={14} /> },
-    { id: 'orders', label: 'Order History', icon: <ClipboardList size={14} /> },
+    { id: 'settings', label: 'Cài Đặt Tài Khoản', icon: <Settings2 size={14} /> },
+    { id: 'orders', label: 'Lịch Sử Mua Hàng', icon: <ClipboardList size={14} /> },
   ];
 
   return (
     <div className="min-h-screen bg-cyber-black grid-bg px-4 py-16">
       <div className="mx-auto w-full max-w-3xl">
 
-        {/* ── Top breadcrumb badge ─────────────────────────────── */}
+        {/* ── Top breadcrumb badge ──────────────────────────────── */}
         <div className="flex items-center gap-2 mb-8 text-xs font-mono text-neon-cyan uppercase tracking-widest">
           <ShieldCheck size={14} />
           <span>CyberSteam</span>
           <span className="text-text-muted/40">/</span>
-          <span className="text-text-muted">My Profile</span>
+          <span className="text-text-muted">Hồ Sơ Của Tôi</span>
         </div>
 
         {/* ── Profile hero row ─────────────────────────────────── */}
@@ -543,7 +519,7 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
             <p className="text-sm text-text-muted font-mono mt-1 truncate">{profile.email}</p>
             <div className="flex items-center gap-3 mt-3">
               <span className="inline-flex items-center gap-1.5 text-[11px] font-mono px-2 py-0.5 rounded border border-neon-cyan/20 text-neon-cyan bg-neon-cyan/5">
-                <BadgeCheck size={10} /> Verified Buyer
+                <BadgeCheck size={10} /> Khách Hàng Xác Thực
               </span>
               <span className="text-[11px] text-text-muted/50 font-mono">
                 UID: {profile.id.slice(0, 8)}…
@@ -552,8 +528,8 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
           </div>
 
           <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
-            <p className="text-xs text-text-muted/50 font-mono uppercase tracking-widest">Orders</p>
-            <p className="text-3xl font-bold text-neon-cyan font-mono">{MOCK_ORDERS.length}</p>
+            <p className="text-xs text-text-muted/50 font-mono uppercase tracking-widest">Đơn Hàng</p>
+            <p className="text-3xl font-bold text-neon-cyan font-mono">{purchases.length}</p>
           </div>
         </div>
 
@@ -599,14 +575,14 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
             <form action={formAction} className="p-8 flex flex-col gap-7">
               <div className="flex items-center gap-2">
                 <Settings2 size={16} className="text-neon-cyan" />
-                <h2 className="text-base font-bold text-text-primary">Account Settings</h2>
+                <h2 className="text-base font-bold text-text-primary">Cài Đặt Tài Khoản</h2>
               </div>
 
               <div className="border-t border-cyber-border" />
 
-              {/* ── Email (read-only) ──────────────────────────── */}
+              {/* ── Email (read-only) ────────────────── */}
               <div className="flex flex-col gap-2">
-                <FieldLabel icon={<Mail size={12} />}>Email Address</FieldLabel>
+                <FieldLabel icon={<Mail size={12} />}>Địa Chỉ Email</FieldLabel>
                 <div className="relative">
                   <input
                     id="profile-email"
@@ -614,23 +590,23 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
                     value={profile.email}
                     disabled
                     readOnly
-                    aria-label="Email address (read-only)"
+                    aria-label="Địa chỉ email (chỉ đọc)"
                     className={`${INPUT_BASE} pr-24 cursor-not-allowed opacity-60`}
                     style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.4)' }}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-text-muted/50 font-mono bg-cyber-surface border border-cyber-border px-1.5 py-0.5 rounded tracking-widest">
-                    READ ONLY
+                    CHỈ ĐỌC
                   </span>
                 </div>
                 <p className="text-[11px] text-text-muted/60">
-                  Email is tied to your auth provider and cannot be changed here.
+                  Email được liên kết với tài khoản đăng nhập và không thể thay đổi tại đây.
                 </p>
               </div>
 
-              {/* ── Display Name ──────────────────────────────── */}
+              {/* ── Display Name ──────────────────── */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <FieldLabel icon={<User size={12} />}>Display Name</FieldLabel>
+                  <FieldLabel icon={<User size={12} />}>Tên Hiển Thị</FieldLabel>
                   {/* Character counter — amber warning zone at ≥25, red at max */}
                   <span
                     className={`text-[11px] font-mono tabular-nums transition-colors duration-150 ${
@@ -758,10 +734,20 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
                         height={64}
                         className="w-full h-full object-cover"
                         unoptimized
+                        onError={(e) => {
+                          // Hide the broken image and reveal the fallback letter.
+                          e.currentTarget.style.display = 'none';
+                          const sibling = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (sibling) sibling.style.display = 'flex';
+                        }}
                       />
-                    ) : (
-                      <span className="text-xl font-bold text-neon-cyan font-mono">{avatarFallback}</span>
-                    )}
+                    ) : null}
+                    <span
+                      className="text-xl font-bold text-neon-cyan font-mono"
+                      style={{ display: avatarPreview ? 'none' : 'flex' }}
+                    >
+                      {avatarFallback}
+                    </span>
                   </div>
 
                   {/* Upload prompt text */}
@@ -905,7 +891,7 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
           </div>
         )}
 
-        {/* ── Tab 2: Order History ─────────────────────────────── */}
+        {/* ── Tab 2: Lịch Sử Mua Hàng ─────────────────────────── */}
         {activeTab === 'orders' && (
           <div
             className="relative rounded-2xl border border-cyber-border bg-cyber-surface overflow-hidden"
@@ -919,101 +905,149 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
             />
 
             <div className="p-8 flex flex-col gap-6">
+
+              {/* ── Header ── */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShoppingBag size={16} className="text-neon-purple" />
-                  <h2 className="text-base font-bold text-text-primary">Order History</h2>
+                  <h2 className="text-base font-bold text-text-primary">Lịch Sử Mua Hàng</h2>
                 </div>
                 <span className="text-xs font-mono text-text-muted/60 border border-cyber-border rounded px-2 py-0.5">
-                  {MOCK_ORDERS.length} orders
+                  {purchases.length} đơn
                 </span>
               </div>
 
               <div className="border-t border-cyber-border" />
 
-              {/* ── Orders table ────────────────────────────────── */}
-              <div className="overflow-x-auto -mx-2">
-                <table className="w-full text-sm border-collapse min-w-[540px]">
-                  <thead>
-                    <tr className="text-left">
-                      {['Order ID', 'Date', 'Item & Games', 'Total', 'Status'].map((h) => (
-                        <th
-                          key={h}
-                          className="px-3 pb-3 text-[11px] font-semibold text-text-muted/70 uppercase tracking-widest whitespace-nowrap"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-cyber-border/50">
-                    {MOCK_ORDERS.map((order) => (
-                      <tr
-                        key={order.id}
-                        className="group transition-colors hover:bg-cyber-dark/40"
-                      >
-                        {/* Order ID */}
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <span className="font-mono text-neon-cyan text-xs">{order.id}</span>
-                        </td>
-
-                        {/* Date */}
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <span className="flex items-center gap-1.5 text-text-muted text-xs font-mono">
-                            <CalendarDays size={11} className="opacity-60" />
-                            {order.date}
-                          </span>
-                        </td>
-
-                        {/* Item */}
-                        <td className="px-3 py-4">
-                          <p className="text-text-primary font-medium leading-snug">{order.item}</p>
-                          <p className="flex items-center gap-1 text-[11px] text-text-muted/70 mt-0.5">
-                            <Tag size={10} className="opacity-60" />
-                            {order.games}
-                          </p>
-                        </td>
-
-                        {/* Price */}
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <span className="font-mono font-semibold text-text-primary">{order.price}</span>
-                        </td>
-
-                        {/* Status badge */}
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold font-mono ${STATUS_STYLES[order.status]}`}
+              {/* ── Empty state ── */}
+              {purchases.length === 0 ? (
+                <div className="flex flex-col items-center gap-4 py-12 text-center">
+                  <ShoppingBag size={40} className="text-cyber-border" />
+                  <div>
+                    <p className="font-mono text-sm text-text-muted">
+                      Bạn chưa mua sản phẩm nào.
+                    </p>
+                    <p className="font-mono text-xs text-text-muted/50 mt-1">
+                      Khám phá cửa hàng để tìm tài khoản game phù hợp!
+                    </p>
+                  </div>
+                  <Link
+                    href="/"
+                    className="
+                      mt-2 inline-flex items-center gap-2 rounded-lg border px-4 py-2
+                      font-mono text-xs uppercase tracking-wider
+                      border-neon-cyan/30 text-neon-cyan bg-neon-cyan/5
+                      hover:bg-neon-cyan/10 hover:border-neon-cyan/60
+                      transition-all duration-200
+                    "
+                  >
+                    <ShoppingBag size={13} />
+                    Đi mua sắm ngay
+                  </Link>
+                </div>
+              ) : (
+                /* ── Orders table ── */
+                <div className="overflow-x-auto -mx-2">
+                  <table className="w-full text-sm border-collapse min-w-[540px]">
+                    <thead>
+                      <tr className="text-left">
+                        {['Mã Đơn', 'Ngày Mua', 'Sản Phẩm', 'Tổng Tiền', 'Trạng Thái'].map((h) => (
+                          <th
+                            key={h}
+                            className="px-3 pb-3 text-[11px] font-semibold text-text-muted/70 uppercase tracking-widest whitespace-nowrap"
                           >
-                            {STATUS_ICONS[order.status]}
-                            {order.status}
-                          </span>
-                        </td>
+                            {h}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-cyber-border/50">
+                      {purchases.map((purchase) => (
+                        <tr
+                          key={purchase.id}
+                          className="group transition-colors hover:bg-cyber-dark/40"
+                        >
+                          {/* Mã đơn — first 8 chars of UUID */}
+                          <td className="px-3 py-4 whitespace-nowrap">
+                            <span className="font-mono text-neon-cyan text-xs">
+                              #{purchase.id.slice(0, 8).toUpperCase()}
+                            </span>
+                          </td>
 
-              {/* ── Summary row ───────────────────────────────── */}
+                          {/* Ngày mua */}
+                          <td className="px-3 py-4 whitespace-nowrap">
+                            <span className="flex items-center gap-1.5 text-text-muted text-xs font-mono">
+                              <CalendarDays size={11} className="opacity-60" />
+                              {formatDate(purchase.purchased_at)}
+                            </span>
+                          </td>
+
+                          {/* Sản phẩm — link to game detail */}
+                          <td className="px-3 py-4">
+                            {purchase.item ? (
+                              <Link
+                                href={`/game/${purchase.item.id}`}
+                                className="group/link flex flex-col"
+                              >
+                                <span className="flex items-center gap-1.5 text-text-primary font-medium leading-snug group-hover/link:text-neon-cyan transition-colors duration-150">
+                                  {purchase.item.title}
+                                  <ExternalLink size={11} className="opacity-0 group-hover/link:opacity-60 transition-opacity" />
+                                </span>
+                                <span className="flex items-center gap-1 text-[11px] text-text-muted/70 mt-0.5">
+                                  <Tag size={10} className="opacity-60" />
+                                  Tài khoản game
+                                </span>
+                              </Link>
+                            ) : (
+                              <span className="text-text-muted/50 italic text-xs">
+                                Sản phẩm không còn tồn tại
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Tổng tiền — VND */}
+                          <td className="px-3 py-4 whitespace-nowrap">
+                            <span className="font-mono font-semibold text-text-primary">
+                              {purchase.item ? formatVND(purchase.item.price) : '—'}
+                            </span>
+                          </td>
+
+                          {/* Trạng thái — always "Đã giao" for completed purchases */}
+                          <td className="px-3 py-4 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-semibold font-mono bg-emerald-950/70 text-emerald-400 border-emerald-500/30">
+                              <PackageCheck size={11} />
+                              Đã giao
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* ── Summary row ── */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-xl border border-cyber-border/60 bg-cyber-dark/60 px-5 py-4 mt-2">
                 <div className="flex items-center gap-2 text-xs text-text-muted/70 font-mono">
                   <ShieldCheck size={13} className="text-neon-cyan/60" />
-                  All transactions are end-to-end encrypted and logged securely.
+                  Mọi giao dịch đều được mã hóa và lưu trữ an toàn.
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs text-text-muted/60 font-mono">Total spent:</span>
+                  <span className="text-xs text-text-muted/60 font-mono">Tổng tiền đã tiêu:</span>
                   <span className="font-bold font-mono text-neon-cyan">
-                    ${MOCK_ORDERS.filter(o => o.status !== 'Refunded').reduce((sum, o) => sum + parseFloat(o.price.replace('$', '')), 0).toFixed(2)}
+                    {formatVND(purchases.reduce((sum, p) => sum + (p.item?.price ?? 0), 0))}
                   </span>
                 </div>
               </div>
+
             </div>
           </div>
         )}
 
+
         {/* ── Footer note ──────────────────────────────────────── */}
         <p className="mt-6 text-center text-[11px] text-text-muted/40 font-mono">
-          All profile updates are server-side verified · Session-bound · Never trust the client
+          Mọi thay đổi hồ sơ được xác thực phía server · Liên kết phiên · Không bao giờ tin tưởng client
         </p>
       </div>
     </div>

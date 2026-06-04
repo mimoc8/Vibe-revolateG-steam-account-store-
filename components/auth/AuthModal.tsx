@@ -32,6 +32,34 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'facebook' | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
+  /* ── BFCache state reset ────────────────────────────────────────── */
+  // Immediate failsafe: reset stuck button state the instant bfcache restores
+  // the page, BEFORE CacheBuster’s global reload fires.  Without this, the
+  // user sees a disabled button for the ~100-200ms before the reload kicks in.
+  // Note: we do NOT call window.location.reload() here — CacheBuster owns that.
+  useEffect(() => {
+    function handlePageShow(e: PageTransitionEvent) {
+      if (!e.persisted) return;
+      setLoadingProvider(null);
+      setAuthError(null);
+    }
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, []);
+
+  /* ── Auth guard ──────────────────────────────────────────────────── */
+  // Runs when the modal opens AND on pathname change.
+  // The pathname dep catches the edge case where bfcache restores a page with
+  // the modal already open (isOpen stays true — never toggles — so a dep on
+  // isOpen alone would not re-fire the guard).
+  useEffect(() => {
+    if (!isOpen) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.replace('/');
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, pathname]);
+
   /* ── Close on Escape, lock body scroll ── */
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); },
