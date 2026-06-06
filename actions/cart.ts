@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
 /* ── Return types ─────────────────────────────────────────────── */
@@ -120,9 +121,10 @@ export async function removeCartItem(cartItemId: string): Promise<RemoveCartItem
     return { error: 'Không thể xóa. Vui lòng thử lại.' };
   }
 
-  // Revalidate cart page so Server Component re-fetches fresh data.
-  const { revalidatePath } = await import('next/cache');
+  // Revalidate cart page so the item list re-fetches server-side.
   revalidatePath('/cart');
+  // Revalidate the entire layout so the Navbar cart badge also drops.
+  revalidatePath('/', 'layout');
 
   return { success: true };
 }

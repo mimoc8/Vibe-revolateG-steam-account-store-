@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Trash2, Loader2 } from 'lucide-react';
 import { removeCartItem } from '@/actions/cart';
 
@@ -9,6 +10,7 @@ interface RemoveCartButtonProps {
 }
 
 export default function RemoveCartButton({ cartItemId }: RemoveCartButtonProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -18,11 +20,13 @@ export default function RemoveCartButton({ cartItemId }: RemoveCartButtonProps) 
       const result = await removeCartItem(cartItemId);
       if ('error' in result) {
         setError(result.error);
-        // Auto-clear error message after 3s
         setTimeout(() => setError(null), 3000);
       } else {
-        // Notify Navbar badge to refresh count.
+        // Notify Navbar badge (legacy event kept for compatibility).
         window.dispatchEvent(new Event('cart-updated'));
+        // CRITICAL: force Next.js to re-fetch the updated Server Component
+        // payload without a full page reload — items vanish instantly.
+        router.refresh();
       }
     });
   }

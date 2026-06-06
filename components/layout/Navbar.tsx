@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, ShoppingCart, LogIn, LogOut } from 'lucide-react';
+import { ShoppingCart, LogIn, LogOut } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
-import AuthModal from '@/components/auth/AuthModal';
 import SafeAvatar from '@/components/ui/SafeAvatar';
 import { getCartCount } from '@/actions/cart';
+import SearchBar from '@/components/SearchBar';
 
 interface NavbarProfile {
   id: string;
@@ -26,7 +26,7 @@ interface NavbarProps {
 
 export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
   const pathname  = usePathname();
-  const [authOpen, setAuthOpen] = useState(false);
+  const router    = useRouter();
   // Initialise directly from server-provided values — no loading state needed.
   const [user,    setUser]    = useState<SupabaseUser | null>(initialUser);
   const [profile, setProfile] = useState<NavbarProfile | null>(initialProfile);
@@ -117,14 +117,7 @@ export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    setUser(null);
-    setProfile(null); // optimistic clear
-    await supabase.auth.signOut();
-    // Hard redirect — bypasses Next.js router cache and BFCache entirely.
-    window.location.replace('/');
-  };
+
 
   // ── Derived display values ──────────────────────────────────────────────────
   // Priority: profiles table → auth metadata → email prefix → fallback
@@ -143,8 +136,7 @@ export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
     null;
 
   return (
-    <>
-      <header
+    <header
         className="sticky top-0 z-50 w-full border-b border-[var(--color-cyber-border)]"
         style={{
           background:           'rgba(5, 5, 8, 0.75)',
@@ -174,29 +166,7 @@ export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
             </Link>
 
             {/* Search — desktop */}
-            <div className="relative hidden flex-1 md:block">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]"
-                size={15}
-                aria-hidden="true"
-              />
-              <input
-                id="nav-search"
-                type="search"
-                placeholder="Tìm kiếm tài khoản, game, thể loại..."
-                className="
-                  w-full rounded-md border py-2 pl-9 pr-4
-                  font-mono text-sm outline-none
-                  bg-[var(--color-cyber-surface)]
-                  border-[var(--color-cyber-border)]
-                  text-[var(--color-text-primary)]
-                  placeholder:font-mono placeholder:text-[var(--color-text-muted)]
-                  transition-all duration-200
-                  focus:border-[var(--color-neon-magenta)]
-                  focus:shadow-[0_0_0_2px_rgba(255,0,255,0.15),0_0_12px_rgba(255,0,255,0.2)]
-                "
-              />
-            </div>
+            <SearchBar className="hidden flex-1 md:block" />
 
             {/* Spacer on mobile */}
             <div className="flex-1 md:hidden" />
@@ -265,10 +235,10 @@ export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
                   </Link>
 
                   {/* Đăng xuất */}
-                  <button
+                  <a
                     id="nav-logout"
+                    href="/auth/logout"
                     aria-label="Đăng xuất"
-                    onClick={handleLogout}
                     className="
                       flex items-center gap-2 rounded-md border px-2.5 py-2 font-mono text-sm
                       border-gray-700/80
@@ -280,18 +250,19 @@ export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
                       hover:-translate-y-px
                       active:scale-95
                       md:px-3
+                      cursor-pointer
                     "
                   >
                     <LogOut size={15} aria-hidden="true" />
                     <span className="hidden md:inline">Đăng xuất</span>
-                  </button>
+                  </a>
                 </div>
               ) : (
-                /* ── Guest: Đăng nhập button ── */
-                <button
+                /* ── Guest: navigate to dedicated /login page ── */
+                <Link
                   id="nav-login"
+                  href="/login"
                   aria-label="Đăng nhập"
-                  onClick={() => setAuthOpen(true)}
                   className="
                     flex items-center gap-2 rounded-md px-2.5 py-2 font-mono text-sm font-semibold
                     bg-[var(--color-neon-cyan)]
@@ -306,43 +277,17 @@ export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
                 >
                   <LogIn size={16} aria-hidden="true" />
                   <span className="hidden md:inline">Đăng nhập</span>
-                </button>
+                </Link>
               )}
             </nav>
           </div>
 
           {/* ── Mobile search row ── */}
           <div className="pb-3 md:hidden">
-            <div className="relative w-full">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]"
-                size={15}
-                aria-hidden="true"
-              />
-              <input
-                id="nav-search-mobile"
-                type="search"
-                placeholder="Tìm kiếm tài khoản, game..."
-                className="
-                  w-full rounded-md border py-2 pl-9 pr-4
-                  font-mono text-sm outline-none
-                  bg-[var(--color-cyber-surface)]
-                  border-[var(--color-cyber-border)]
-                  text-[var(--color-text-primary)]
-                  placeholder:font-mono placeholder:text-[var(--color-text-muted)]
-                  transition-all duration-200
-                  focus:border-[var(--color-neon-magenta)]
-                  focus:shadow-[0_0_0_2px_rgba(255,0,255,0.15),0_0_12px_rgba(255,0,255,0.2)]
-                "
-              />
-            </div>
+            <SearchBar placeholder="Tìm kiếm tài khoản, game..." />
           </div>
 
         </div>
       </header>
-
-      {/* Auth Modal — outside header to avoid stacking context issues */}
-      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
-    </>
-  );
+    );
 }

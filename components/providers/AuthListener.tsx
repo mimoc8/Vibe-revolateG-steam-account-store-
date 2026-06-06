@@ -21,26 +21,34 @@
  * Returns null — zero visual impact.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 export default function AuthListener() {
+  const router = useRouter();
+  const lastUserRef = useRef<string | null>(null);
+
   useEffect(() => {
     const supabase = createClient();
 
+    // Set initial user to prevent first-load refresh
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      lastUserRef.current = session?.user?.id ?? null;
+    });
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') {
-        // Hard-reload the current page so Server Components re-run with the
-        // new session cookie.  `replace` avoids adding a duplicate history
-        // entry and prevents the pre-auth page from being bfcached.
-        window.location.replace(window.location.href);
-      }
-
-      if (event === 'SIGNED_OUT') {
-        // Navigate home — no bfcache entry left for any protected page.
-        window.location.replace('/');
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentUserId = session?.user?.id ?? null;
+      
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        // Only trigger a Next.js soft refresh if the actual user changed
+        // This prevents Supabase's aggressive SIGNED_IN events from causing an infinite transition loop
+        if (lastUserRef.current !== currentUserId) {
+          lastUserRef.current = currentUserId;
+          router.refresh();
+        }
       }
     });
 

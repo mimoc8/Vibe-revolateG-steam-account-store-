@@ -7,22 +7,7 @@ import { ShoppingBag, AlertTriangle, PackageOpen } from "lucide-react";
    Data helpers
 ──────────────────────────────────────────────────────────── */
 
-/** Fetch all published market items, newest first. */
-async function getMarketItems(supabase: Awaited<ReturnType<typeof createClient>>): Promise<{
-  items: MarketItem[];
-  error: string | null;
-}> {
-  const { data, error } = await supabase
-    .from("market_items")
-    .select("id, title, price, tags, image_url, description, created_at")
-    .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("[ProductGrid] market_items error:", error.message);
-    return { items: [], error: error.message };
-  }
-  return { items: (data as MarketItem[]) ?? [], error: null };
-}
 
 /**
  * Fetch the set of item_ids the current user already owns.
@@ -82,15 +67,13 @@ function EmptyState() {
 /* ────────────────────────────────────────────────────────────
    Main Server Component
 ──────────────────────────────────────────────────────────── */
-export default async function ProductGrid() {
-  // Single client instance shared across both queries
+export default async function ProductGrid({ items }: { items: any[] }) {
+  // Single client instance
   const supabase = await createClient();
 
-  // Run both queries in parallel — halves the waterfall
-  const [{ items, error }, ownedItemIds] = await Promise.all([
-    getMarketItems(supabase),
-    getOwnedItemIds(supabase),
-  ]);
+  // Fetch ownership data for the grid items
+  const ownedItemIds = await getOwnedItemIds(supabase);
+
 
   return (
     <section
@@ -99,46 +82,19 @@ export default async function ProductGrid() {
       className="mx-auto w-full max-w-7xl px-4 pb-24 md:px-8"
     >
       {/* ── Section header ── */}
-      <div className="mb-10 flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <ShoppingBag
-            className="h-4 w-4"
-            style={{ color: "var(--color-neon-cyan)" }}
-            aria-hidden="true"
-          />
-          <span className="font-mono text-xs uppercase tracking-widest" style={{ color: "var(--color-neon-cyan)" }}>
-            Marketplace
-          </span>
+      <div className="flex flex-col mb-10 mt-12 relative z-10">
+        <div className="flex items-center gap-2 mb-2 text-cyan-400 font-bold tracking-[0.3em] text-xs uppercase">
+          <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_8px_#22d3ee]"></div>
+          MARKETPLACE
         </div>
-
-        <h2
-          id="marketplace-heading"
-          className="font-mono text-2xl font-black tracking-tight sm:text-3xl"
-          style={{ color: "var(--color-text-primary)", textShadow: "0 0 30px rgba(0,245,255,0.15)" }}
-        >
+        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">
           Tài Khoản Nổi Bật
         </h2>
-
-        <div className="mt-1 flex items-center gap-3">
-          <div
-            className="h-px w-24"
-            style={{ background: "linear-gradient(90deg, var(--color-neon-cyan), transparent)" }}
-          />
-          {!error && items.length > 0 && (
-            <span className="font-mono text-[11px] text-white/30">
-              {items.length} sản phẩm
-              {ownedItemIds.size > 0 && (
-                <> &nbsp;·&nbsp; <span className="text-emerald-400">{ownedItemIds.size} đã sở hữu</span></>
-              )}
-            </span>
-          )}
-        </div>
+        <div className="w-24 h-[3px] bg-gradient-to-r from-cyan-400 to-transparent mt-4"></div>
       </div>
 
       {/* ── Content area ── */}
-      {error ? (
-        <ErrorState message={error} />
-      ) : items.length === 0 ? (
+      {items.length === 0 ? (
         <EmptyState />
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

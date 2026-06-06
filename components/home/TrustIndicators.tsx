@@ -63,7 +63,7 @@ const TRUST_CARDS: TrustCard[] = [
 
 export default function TrustIndicators() {
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 pb-16 md:px-8">
+    <section className="mx-auto w-full max-w-7xl mt-32 px-4 pb-16 md:px-8">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {TRUST_CARDS.map(({ id, icon: Icon, title, subtitle, cardHover, iconBox, iconClass, accentClass }) => (
           <div

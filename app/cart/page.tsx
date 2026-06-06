@@ -62,8 +62,9 @@ export default async function CartPage() {
   const isEmpty = items.length === 0;
 
   /* ── Totals ── */
-  const subtotal = items.reduce((sum, i) => sum + (i.market_items?.price ?? 0), 0);
-  const itemCount = items.length;
+  const subtotal   = items.reduce((sum, i) => sum + (i.market_items?.price ?? 0), 0);
+  const totalPrice = subtotal; // alias — single source of truth
+  const itemCount  = items.length;
 
   /* ══════════════════════════════════════════
      EMPTY STATE
@@ -264,7 +265,7 @@ export default async function CartPage() {
                   className="font-mono text-3xl font-black tracking-tight text-[var(--color-neon-cyan)]"
                   style={{ textShadow: '0 0 20px rgba(0,245,255,0.45)' }}
                 >
-                  {formatVND(subtotal)}
+                  {formatVND(totalPrice)}
                 </span>
               </div>
 
@@ -274,8 +275,8 @@ export default async function CartPage() {
                 style={{ background: 'linear-gradient(90deg, var(--color-cyber-border), transparent)' }}
               />
 
-              {/* Checkout button */}
-              <CheckoutButton />
+              {/* Checkout button — only rendered when cart is non-empty */}
+              {items.length > 0 && <CheckoutButton />}
 
               {/* Trust note */}
               <p className="text-center font-mono text-[10px] text-[var(--color-text-muted)]">

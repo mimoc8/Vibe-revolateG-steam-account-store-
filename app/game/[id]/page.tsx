@@ -3,8 +3,6 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Tag, Monitor } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import type { MarketItem } from "@/lib/types/store";
-import TransactionZone from "@/components/store/TransactionZone";
-import AddToCartButton from "@/components/store/AddToCartButton";
 import HeroCarousel from "./HeroCarousel";
 import type { Metadata } from "next";
 
@@ -122,7 +120,6 @@ function SysRequirements({ specs }: { specs: NonNullable<MarketItem["sys_require
           className="flex items-center gap-2 border-b border-[var(--color-cyber-border)] px-4 py-2.5"
           style={{ background: "rgba(0,245,255,0.04)" }}
         >
-          {/* Traffic-light dots */}
           <span className="h-2.5 w-2.5 rounded-full bg-red-500/60" aria-hidden="true" />
           <span className="h-2.5 w-2.5 rounded-full bg-yellow-500/60" aria-hidden="true" />
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/60" aria-hidden="true" />
@@ -186,7 +183,7 @@ export default async function GameDetailPage({
   return (
     <div className="grid-bg min-h-screen">
 
-      {/* ── Floating back button — fixed to viewport, clears the h-16 navbar ── */}
+      {/* ── Floating back button ── */}
       <Link
         href="/"
         className="
@@ -206,196 +203,87 @@ export default async function GameDetailPage({
           active:scale-95
         "
       >
-        <ArrowLeft className="h-3 w-3 transition-transform duration-300 group-hover:-translate-x-0.5" aria-hidden="true" />
+        <ArrowLeft className="h-3 w-3" aria-hidden="true" />
         Quay lại
       </Link>
 
-      {/* ── Hero carousel ───────────────────────────────────── */}
-      <div className="relative">
-        <HeroCarousel images={galleryImages} title={title} interval={4000} />
-
-        {/* Title overlaid at bottom of carousel */}
-        <div className="absolute bottom-0 left-0 z-30 w-full px-4 pb-8 md:px-8 lg:max-w-4xl">
-          {isOwned && (
-            <span className="mb-3 inline-block rounded-sm bg-emerald-500/90 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest text-black">
-              ĐÃ SỞ HỮU
-            </span>
-          )}
-          <h1
-            className="font-mono text-3xl font-black leading-tight tracking-tight sm:text-4xl md:text-5xl"
-            style={{
-              color: "var(--color-text-primary)",
-              textShadow: isOwned
-                ? "0 0 40px rgba(52,211,153,0.3)"
-                : "0 2px 40px rgba(0,245,255,0.2)",
-            }}
-          >
-            {title}
-          </h1>
-        </div>
+      {/* ── Steam-style split hero carousel ── */}
+      <div className="mx-auto max-w-7xl px-4 pt-6 md:px-8">
+        <HeroCarousel
+          images={galleryImages}
+          title={title}
+          price={price}
+          tags={tags}
+          itemId={item.id}
+          isOwned={isOwned}
+          interval={4000}
+        />
       </div>
 
-      {/* ── Main content ────────────────────────────────────── */}
+      {/* ── Supplemental content (description + sys req) ── */}
       <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_340px]">
+        <div className="flex flex-col gap-8">
 
-          {/* ── Left column ── */}
-          <div className="flex flex-col gap-8">
-
-            {/* Tags */}
-            {tags && tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="
-                      flex items-center gap-1.5 rounded-full border px-3 py-1
-                      font-mono text-xs uppercase tracking-wider
-                      border-[var(--color-cyber-border)] bg-white/[0.04]
-                      text-[var(--color-text-muted)]
-                      transition-colors duration-150
-                      hover:border-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan)]
-                    "
-                  >
-                    <Tag className="h-2.5 w-2.5" aria-hidden="true" />
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Divider */}
-            <div
-              className="h-px w-full"
-              style={{
-                background:
-                  "linear-gradient(90deg, var(--color-neon-cyan), rgba(0,245,255,0.1), transparent)",
-              }}
-            />
-
-            {/* Description */}
-            <div className="flex flex-col gap-3">
-              <h2
-                className="font-mono text-xs uppercase tracking-widest"
-                style={{ color: "var(--color-neon-cyan)" }}
-              >
-                Mô tả
-              </h2>
-              <p
-                className="leading-relaxed text-[var(--color-text-muted)] md:text-base"
-                style={{ fontFamily: "var(--font-sans)" }}
-              >
-                {description ?? "Chưa có mô tả cho tài khoản này."}
-              </p>
+          {/* Tags row */}
+          {tags && tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="
+                    flex items-center gap-1.5 rounded-full border px-3 py-1
+                    font-mono text-xs uppercase tracking-wider
+                    border-[var(--color-cyber-border)] bg-white/[0.04]
+                    text-[var(--color-text-muted)]
+                    transition-colors duration-150
+                    hover:border-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan)]
+                  "
+                >
+                  <Tag className="h-2.5 w-2.5" aria-hidden="true" />
+                  {tag}
+                </span>
+              ))}
             </div>
+          )}
 
-            {/* System requirements */}
-            {sys_requirements && <SysRequirements specs={sys_requirements} />}
+          {/* Divider */}
+          <div
+            className="h-px w-full"
+            style={{
+              background:
+                "linear-gradient(90deg, var(--color-neon-cyan), rgba(0,245,255,0.1), transparent)",
+            }}
+          />
 
-            {/* Meta row */}
-            <div className="flex flex-wrap items-center gap-6">
-              <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
-                <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                <span className="font-mono text-xs">Đăng ngày {formatDate(created_at)}</span>
-              </div>
-            </div>
+          {/* Description */}
+          <div className="flex flex-col gap-3">
+            <h2
+              className="font-mono text-xs uppercase tracking-widest"
+              style={{ color: "var(--color-neon-cyan)" }}
+            >
+              Mô tả
+            </h2>
+            <p
+              className="leading-relaxed text-[var(--color-text-muted)] md:text-base"
+              style={{ fontFamily: "var(--font-sans)" }}
+            >
+              {description ?? "Chưa có mô tả cho tài khoản này."}
+            </p>
           </div>
 
-          {/* ── Right column: purchase panel ── */}
-          <aside>
-            <div
-              className={`
-                sticky top-24 flex flex-col gap-5 rounded-2xl
-                border p-6 backdrop-blur-md
-                ${
-                  isOwned
-                    ? "border-emerald-500/30 bg-emerald-900/[0.07]"
-                    : "border-[var(--color-cyber-border)] bg-white/[0.04]"
-                }
-              `}
-              style={{
-                boxShadow: isOwned
-                  ? "0 0 40px rgba(52,211,153,0.08), inset 0 1px 0 rgba(52,211,153,0.1)"
-                  : "0 0 40px rgba(0,245,255,0.05), inset 0 1px 0 rgba(255,255,255,0.04)",
-              }}
-            >
-              {/* Panel header */}
-              <p
-                className="font-mono text-[10px] uppercase tracking-widest"
-                style={{ color: "var(--color-text-muted)" }}
-              >
-                {isOwned ? "Trạng thái sở hữu" : "Thông tin mua hàng"}
-              </p>
+          {/* System requirements */}
+          {sys_requirements && <SysRequirements specs={sys_requirements} />}
 
-              {/* Price */}
-              <div className="flex flex-col gap-1.5">
-                <span
-                  className="font-mono text-[10px] uppercase tracking-widest"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  Giá
-                </span>
-                <span
-                  className={`font-mono text-3xl font-black tracking-tight ${
-                    isOwned ? "text-emerald-400" : "text-[var(--color-neon-cyan)]"
-                  }`}
-                  style={{
-                    textShadow: isOwned
-                      ? "0 0 20px rgba(52,211,153,0.4)"
-                      : "0 0 20px rgba(0,245,255,0.4)",
-                  }}
-                >
-                  {formatVND(price)}
-                </span>
-              </div>
-
-              {/* Divider */}
-              <div
-                className="h-px w-full"
-                style={{
-                  background: isOwned
-                    ? "linear-gradient(90deg, rgba(52,211,153,0.4), transparent)"
-                    : "linear-gradient(90deg, var(--color-cyber-border), transparent)",
-                }}
-              />
-
-              {/* CTA — fully handled by TransactionZone client component */}
-              <TransactionZone
-                itemId={item.id}
-                price={price}
-                isOwned={isOwned}
-              />
-
-              {/* Add to cart — secondary action, hidden when already owned */}
-              {!isOwned && (
-                <AddToCartButton itemId={item.id} />
-              )}
-
-              {/* Trust badges */}
-              <div className="mt-1 grid grid-cols-2 gap-2">
-                {[
-                  { icon: "🔒", label: "Bảo mật SSL" },
-                  { icon: "⚡", label: "Giao hàng tức thì" },
-                  { icon: "🛡️", label: "Bảo hành 7 ngày" },
-                  { icon: "💬", label: "Hỗ trợ 24/7" },
-                ].map(({ icon, label }) => (
-                  <div
-                    key={label}
-                    className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 border-white/[0.06] bg-white/[0.03]"
-                  >
-                    <span className="text-sm" aria-hidden="true">{icon}</span>
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-white/40">
-                      {label}
-                    </span>
-                  </div>
-                ))}
-              </div>
+          {/* Meta row */}
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
+              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="font-mono text-xs">Đăng ngày {formatDate(created_at)}</span>
             </div>
-          </aside>
+          </div>
         </div>
-
-
       </div>
+
     </div>
   );
 }

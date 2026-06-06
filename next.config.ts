@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       // Steam CDN — game cover images
       { protocol: 'https', hostname: 'shared.akamai.steamstatic.com' },
+      { protocol: 'https', hostname: 'shared.fastly.steamstatic.com' },
       { protocol: 'https', hostname: 'cdn.akamai.steamstatic.com' },
       { protocol: 'https', hostname: 'cdn.cloudflare.steamstatic.com' },
       // Google OAuth profile photos
@@ -18,6 +19,8 @@ const nextConfig: NextConfig = {
       // Supabase Storage (game cover images + user avatars)
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: '*.supabase.in' },
+      // Unsplash
+      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
 };
