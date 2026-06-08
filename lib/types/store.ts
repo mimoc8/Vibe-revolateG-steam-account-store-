@@ -1,5 +1,5 @@
 /**
- * Shared TypeScript types for the CyberSteam storefront.
+ * Shared TypeScript types for the RevolateG storefront.
  */
 
 /** Legacy mock type — kept for backward-compat with AccountCard */

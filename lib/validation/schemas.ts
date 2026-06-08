@@ -1,5 +1,5 @@
 /**
- * CyberSteam — Shared Zod Validation Schemas
+ * RevolateG — Shared Zod Validation Schemas
  *
  * Import these in Server Actions and Route Handlers BEFORE touching the database.
  * Never trust client-submitted data — always parse through these schemas first.

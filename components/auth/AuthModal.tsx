@@ -97,7 +97,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       // On success the browser redirects — no further state update needed.
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
-      console.error(`[CyberSteam] OAuth error (${provider}):`, message);
+      console.error(`[RevolateG] OAuth error (${provider}):`, message);
       setAuthError(message);
     } finally {
       setLoadingProvider(null);

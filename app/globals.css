@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────
-   CyberSteam — Cyberpunk Design System
+   RevolateG — Cyberpunk Design System
    Tailwind v4 CSS-first @theme configuration
 ───────────────────────────────────────────── */
 @theme inline {
@@ -11,14 +11,14 @@
   --color-cyber-surface: #13131f;
   --color-cyber-border:  #1e1e30;
 
-  /* ── Neon accents ── */
-  --color-neon-cyan:     #00f5ff;
-  --color-neon-cyan-dim: #00c4cc;
-  --color-neon-magenta:  #ff00ff;
-  --color-neon-magenta-dim: #cc00cc;
-  --color-neon-yellow:   #f5e642;
-  --color-neon-yellow-dim: #c4b82e;
-  --color-neon-purple:   #bf5fff;
+  /* ── Professional Accents (Replaced Neon) ── */
+  --color-neon-cyan:     #6366f1; /* Indigo 500 */
+  --color-neon-cyan-dim: #4338ca; /* Indigo 700 */
+  --color-neon-magenta:  #a855f7; /* Purple 500 */
+  --color-neon-magenta-dim: #7e22ce; /* Purple 700 */
+  --color-neon-yellow:   #eab308; /* Yellow 500 */
+  --color-neon-yellow-dim: #a16207; /* Yellow 700 */
+  --color-neon-purple:   #8b5cf6; /* Violet 500 */
 
   /* ── Text ── */
   --color-text-primary:  #e8e8f0;
@@ -31,6 +31,19 @@
   /* ── Background / foreground ── */
   --color-background: var(--color-cyber-black);
   --color-foreground: var(--color-text-primary);
+
+  /* ── Theme Override: Remap Tailwind's Cyan to Professional Indigo ── */
+  --color-cyan-50: #eef2ff;
+  --color-cyan-100: #e0e7ff;
+  --color-cyan-200: #c7d2fe;
+  --color-cyan-300: #a5b4fc;
+  --color-cyan-400: #818cf8;
+  --color-cyan-500: #6366f1;
+  --color-cyan-600: #4f46e5;
+  --color-cyan-700: #4338ca;
+  --color-cyan-800: #3730a3;
+  --color-cyan-900: #312e81;
+  --color-cyan-950: #1e1b4b;
 }
 
 /* ─────────────────────────────────────────────
@@ -56,48 +69,26 @@ body {
 }
 
 /* ─────────────────────────────────────────────
-   Neon glow utilities (used on landing page)
+   Clean utilities (removed heavy neon glow)
 ───────────────────────────────────────────── */
 .glow-cyan {
   color: var(--color-neon-cyan);
-  text-shadow:
-    0 0 10px var(--color-neon-cyan),
-    0 0 30px var(--color-neon-cyan),
-    0 0 60px var(--color-neon-cyan-dim),
-    0 0 120px var(--color-neon-cyan-dim);
+  text-shadow: 0 0 1px var(--color-neon-cyan-dim);
 }
 
 .glow-magenta {
   color: var(--color-neon-magenta);
-  text-shadow:
-    0 0 10px var(--color-neon-magenta),
-    0 0 30px var(--color-neon-magenta),
-    0 0 60px var(--color-neon-magenta-dim),
-    0 0 120px var(--color-neon-magenta-dim);
+  text-shadow: 0 0 1px var(--color-neon-magenta-dim);
 }
 
 .glow-yellow {
   color: var(--color-neon-yellow);
-  text-shadow:
-    0 0 8px var(--color-neon-yellow),
-    0 0 20px var(--color-neon-yellow),
-    0 0 50px var(--color-neon-yellow-dim);
+  text-shadow: 0 0 1px var(--color-neon-yellow-dim);
 }
 
-/* Scanline overlay effect */
+/* Scanline overlay effect - disabled for cleaner look */
 .scanlines::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.08) 2px,
-    rgba(0, 0, 0, 0.08) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
+  content: none;
 }
 
 /* Animated neon flicker */

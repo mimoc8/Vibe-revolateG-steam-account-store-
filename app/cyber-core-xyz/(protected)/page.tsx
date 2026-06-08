@@ -33,7 +33,7 @@ export default function AdminPage() {
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-black/60 border border-white/10 p-4 rounded-2xl backdrop-blur-md shadow-[0_0_20px_rgba(0,255,255,0.05)]">
         <div>
           <h1 className="text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500">
-            CYBERSTEAM ADMIN
+            REVOLATEG ADMIN
           </h1>
           <p className="text-xs text-cyan-500/70 font-mono mt-1">
             ENTERPRISE MANAGEMENT SYSTEM // v2.0

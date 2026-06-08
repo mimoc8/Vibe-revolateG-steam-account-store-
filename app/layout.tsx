@@ -15,12 +15,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "CyberSteam — Game Account Marketplace",
-    template: "%s | CyberSteam",
+    default: "RevolateG — Game Account Marketplace",
+    template: "%s | RevolateG",
   },
   description:
     "Buy and sell premium Steam game accounts in the ultimate cyberpunk marketplace. Secure, fast, and trusted.",
-  keywords: ["steam accounts", "game marketplace", "buy steam accounts", "cybersteam"],
+  keywords: ["steam accounts", "game marketplace", "buy steam accounts", "revolateg"],
 };
 
 export default function RootLayout({

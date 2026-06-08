@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const FOOTER_LINKS: { heading: string; links: { label: string; href: string }[] }[] = [
   {
-    heading: "About CyberSteam",
+    heading: "About RevolateG",
     links: [
       { label: "How It Works", href: "/about" },
       { label: "Verified Sellers", href: "/verified" },
@@ -86,13 +86,9 @@ export default function Footer() {
         >
           {/* Logo */}
           <span
-            className="font-mono text-base font-black tracking-tighter"
-            style={{
-              color: "var(--color-neon-cyan)",
-              textShadow: "0 0 8px var(--color-neon-cyan-dim)",
-            }}
+            className="font-sans text-base font-black tracking-tight text-white flex items-baseline"
           >
-            CyberSteam
+            Revolate<span className="text-transparent bg-clip-text bg-gradient-to-tr from-purple-400 to-pink-500 font-serif italic text-lg ml-[1px]">G</span>
           </span>
 
           {/* Copyright */}
@@ -100,7 +96,7 @@ export default function Footer() {
             className="text-center font-mono text-xs md:text-right"
             style={{ color: "var(--color-text-muted)" }}
           >
-            &copy; 2026 CyberSteam. All rights reserved.
+            &copy; 2026 RevolateG. All rights reserved.
           </p>
         </div>
       </div>

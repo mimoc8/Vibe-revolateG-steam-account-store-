@@ -41,7 +41,7 @@ export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
       .eq('id', userId)
       .single();
     if (error) {
-      console.warn('[CyberSteam] Profile fetch failed:', error.message);
+      console.warn('[RevolateG] Profile fetch failed:', error.message);
       return null;
     }
     return data as NavbarProfile;
@@ -153,15 +153,15 @@ export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
               href="/"
               id="nav-logo"
               className="
-                shrink-0 font-mono text-lg font-black tracking-tighter
-                text-[var(--color-neon-cyan)]
-                transition-all duration-200
-                hover:scale-105
-                [text-shadow:0_0_8px_var(--color-neon-cyan),0_0_20px_var(--color-neon-cyan-dim)]
-                md:text-xl
+                shrink-0 font-sans text-xl font-black tracking-tight
+                text-white
+                transition-all duration-300
+                hover:opacity-80
+                md:text-2xl
+                flex items-baseline
               "
             >
-              CyberSteam
+              Revolate<span className="text-transparent bg-clip-text bg-gradient-to-tr from-purple-400 to-pink-500 font-serif italic text-2xl md:text-3xl ml-0.5">G</span>
             </Link>
 
             {/* Search — desktop */}
