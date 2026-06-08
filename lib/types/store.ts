@@ -45,5 +45,7 @@ export type MarketItem = {
     storage?: string;
   } | null;
   created_at: string;
+  account_username?: string | null;
+  account_password?: string | null;
 };
 

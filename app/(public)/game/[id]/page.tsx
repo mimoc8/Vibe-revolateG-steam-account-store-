@@ -79,7 +79,7 @@ async function getPageData(gameId: string): Promise<{ item: MarketItem; isOwned:
         .select("id")
         .eq("user_id", user.id)
         .eq("game_id", gameId);
-        
+
       if (orderError) {
         console.error("[Detail Page] Check Ownership Error:", orderError);
       } else if (orders && orders.length > 0) {
@@ -221,7 +221,7 @@ export default async function GameDetailPage(props: {
       {/* ── 2-Column Detail Layout ── */}
       <div className="mx-auto max-w-7xl px-4 pt-6 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* LEFT COLUMN: Carousel */}
           <div className="lg:col-span-2">
             <GameCarousel images={allImages} />
@@ -229,13 +229,13 @@ export default async function GameDetailPage(props: {
 
           {/* RIGHT COLUMN: Info / Buy Box */}
           <div className="lg:col-span-1 flex flex-col gap-6 p-6 rounded-lg border border-[var(--color-neon-cyan)] shadow-[0_0_20px_rgba(0,245,255,0.1)] bg-black/60 backdrop-blur-md">
-            
+
             <div className="flex flex-col gap-2">
               <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-400/80">
                 Tài khoản game
               </p>
               <h1 className="font-mono text-2xl font-black leading-tight tracking-tight text-[var(--color-text-primary)]"
-                  style={{ textShadow: isOwned ? '0 0 20px rgba(52,211,153,0.3)' : '0 0 20px rgba(0,245,255,0.25)' }}>
+                style={{ textShadow: isOwned ? '0 0 20px rgba(52,211,153,0.3)' : '0 0 20px rgba(0,245,255,0.25)' }}>
                 {title}
               </h1>
               {isOwned && (
@@ -280,7 +280,7 @@ export default async function GameDetailPage(props: {
                 </div>
               ))}
             </div>
-            
+
           </div>
         </div>
       </div>
