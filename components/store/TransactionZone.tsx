@@ -13,11 +13,11 @@ const formatVND = (n: number) => vnd.format(n);
 interface TransactionZoneProps {
   game: {
     id: string;
-    title?: string;
-    image_url?: string;
+    title?: string | null;
+    image_url?: string | null;
     price: number;
-    account_username?: string;
-    account_password?: string;
+    account_username?: string | null;
+    account_password?: string | null;
   };
   initialIsUnlocked: boolean;
 }

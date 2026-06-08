@@ -382,7 +382,17 @@ export default function HeroCarousel({
 
             {/* CTA buttons logic restored from previous version */}
             <div className="flex flex-col gap-2">
-              <TransactionZone itemId={itemId} price={price} isOwned={isOwned} accountUsername={accountUsername} accountPassword={accountPassword} />
+              <TransactionZone 
+                game={{
+                  id: itemId,
+                  price,
+                  title,
+                  image_url: images[0] || null,
+                  account_username: accountUsername,
+                  account_password: accountPassword
+                }} 
+                initialIsUnlocked={isOwned} 
+              />
               {!isOwned && <AddToCartButton itemId={itemId} />}
             </div>
 
