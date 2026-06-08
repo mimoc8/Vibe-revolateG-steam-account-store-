@@ -41,19 +41,10 @@ export default async function ProfilePage() {
       .eq('id', user.id)
       .single(),
     supabase
-      .from('purchases')
-      .select(`
-        id,
-        purchased_at,
-        market_items (
-          id,
-          title,
-          price,
-          image_url
-        )
-      `)
+      .from('orders')
+      .select(`*, market_items(*)`)
       .eq('user_id', user.id)
-      .order('purchased_at', { ascending: false }),
+      .order('created_at', { ascending: false }),
   ]);
 
   // ── 3. Seed missing profile row with OAuth metadata ─────────────────────
@@ -88,7 +79,7 @@ export default async function ProfilePage() {
   // ── 5. Shape purchases (guard deleted items) ────────────────────────────
   type PurchaseRow = {
     id: string;
-    purchased_at: string;
+    created_at: string;
     market_items: {
       id: string;
       title: string;
@@ -101,7 +92,7 @@ export default async function ProfilePage() {
 
   const purchases = rawPurchases.map((p) => ({
     id: p.id,
-    purchased_at: p.purchased_at,
+    purchased_at: p.created_at,
     item: p.market_items,
   }));
 

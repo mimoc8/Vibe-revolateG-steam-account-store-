@@ -13,9 +13,8 @@ import { ShoppingBag, AlertTriangle, PackageOpen } from "lucide-react";
  * Fetch the set of item_ids the current user already owns.
  * Returns an empty Set if the user is not authenticated.
  */
-async function getOwnedItemIds(
-  supabase: Awaited<ReturnType<typeof createClient>>
-): Promise<Set<string>> {
+async function getOwnedItemIds(): Promise<Set<string>> {
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -23,16 +22,16 @@ async function getOwnedItemIds(
   if (!user) return new Set();
 
   const { data, error } = await supabase
-    .from("purchases")
-    .select("item_id")
+    .from("orders")
+    .select("game_id")
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("[ProductGrid] purchases error:", error.message);
+    console.error("[ProductGrid] orders error:", error.message);
     return new Set();
   }
 
-  return new Set((data ?? []).map((row: { item_id: string }) => row.item_id));
+  return new Set((data ?? []).map((row: { game_id: string }) => row.game_id));
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -68,11 +67,8 @@ function EmptyState() {
    Main Server Component
 ──────────────────────────────────────────────────────────── */
 export default async function ProductGrid({ items }: { items: any[] }) {
-  // Single client instance
-  const supabase = await createClient();
-
   // Fetch ownership data for the grid items
-  const ownedItemIds = await getOwnedItemIds(supabase);
+  const ownedItemIds = await getOwnedItemIds();
 
 
   return (

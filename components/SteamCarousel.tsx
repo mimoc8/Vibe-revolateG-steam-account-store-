@@ -21,7 +21,7 @@ interface SteamCarouselProps {
 
 export default function SteamCarousel({ games }: SteamCarouselProps) {
   const [activeGameIndex, setActiveGameIndex] = useState(0);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
 
   // Auto-rotate games every 7 seconds
@@ -30,7 +30,7 @@ export default function SteamCarousel({ games }: SteamCarouselProps) {
     
     const timer = setInterval(() => {
       setActiveGameIndex((prev) => (prev + 1) % games.length);
-      setActiveImageIndex(0); // Reset image index when game changes
+      setActiveImageIndex(null); // Reset image index when game changes
     }, 7000);
     return () => clearInterval(timer);
   }, [games, isPaused]);
@@ -41,8 +41,10 @@ export default function SteamCarousel({ games }: SteamCarouselProps) {
   const validImages = activeGame.images
     .filter((img) => typeof img === 'string' && img.trim() !== '')
     .slice(0, 6);
-  // The large image to display
-  const currentLargeImage = validImages[activeImageIndex] || activeGame.image_url || FALLBACK_IMG;
+  // The large image to display strictly uses game.image_url unless hovering a thumbnail
+  const currentLargeImage = (activeImageIndex !== null && validImages[activeImageIndex]) 
+    ? validImages[activeImageIndex] 
+    : (activeGame.image_url || FALLBACK_IMG);
 
   const handleThumbnailHover = (index: number) => {
     setActiveImageIndex(index);
@@ -164,7 +166,7 @@ export default function SteamCarousel({ games }: SteamCarouselProps) {
             key={idx}
             onClick={() => {
               setActiveGameIndex(idx);
-              setActiveImageIndex(0);
+              setActiveImageIndex(null);
             }}
             className={`
               h-1.5 rounded-full transition-all duration-300

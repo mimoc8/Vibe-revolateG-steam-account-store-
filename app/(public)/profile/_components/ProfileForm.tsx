@@ -4,9 +4,9 @@ import { useActionState, useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { updateProfile, type ActionResult } from '../_actions';
 import { DISPLAY_NAME_REGEX } from '@/lib/validation/schemas';
 import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient } from '@supabase/ssr';
 import {
   User,
   Mail,
@@ -308,6 +308,12 @@ function AvatarPreview({
 
 export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
   const [activeTab, setActiveTab] = useState<TabId>('settings');
+  const router = useRouter();
+  
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   // ── Avatar state ─────────────────────────────────────────────────────────
   // `avatarPreview` drives the hero ring and the upload zone preview.
@@ -319,6 +325,7 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
   // True when the user has explicitly clicked the trash icon to remove their avatar.
   // This flag is sent as a hidden field so the Server Action can write NULL to the DB.
   const [avatarDeleted, setAvatarDeleted] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Display Name state ───────────────────────────────────────────────────
@@ -327,12 +334,101 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
   const [nameDirty, setNameDirty] = useState(false);
   const showNameError = nameDirty && !nameValidation.valid;
 
-  const [state, formAction, isPending] = useActionState<ActionResult | null, FormData>(
-    updateProfile,
-    null,
-  );
+  const [isSaving, setIsSaving] = useState(false);
+  const [toastMsg, setToastMsg] = useState<{type: 'success'|'error', text: string} | null>(null);
 
-  const router = useRouter();
+  const showToast = (type: 'success'|'error', text: string) => {
+      setToastMsg({ type, text });
+      setTimeout(() => setToastMsg(null), 3000); // Auto dismiss in 3 seconds
+  };
+
+  const handleSaveChanges = async (e: any) => {
+    if (e && e.preventDefault) e.preventDefault();
+    console.log("[TRACE] Bước 1: Đã bấm nút lưu");
+
+    if (!nameValidation.valid) {
+      console.log("[TRACE] Validation failed, aborting.");
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      const userId = profile.id;
+      if (!userId) throw new Error("Không tìm thấy ID người dùng.");
+      console.log("[TRACE] User hợp lệ:", userId);
+      
+      let targetAvatarUrl = avatarDeleted ? null : profile.avatar_url;
+
+      // STEP 1: UPLOAD AVATAR (IF NEW FILE SELECTED)
+      if (pendingFile && !avatarDeleted) {
+        console.log("[TRACE] Bước 3: Tải file nguyên bản lên Storage...");
+        setUploadState({ phase: 'uploading', progress: 50 });
+        
+        const fileExt = pendingFile.name.split('.').pop() || 'jpg';
+        const filePath = `${userId}-${Date.now()}.${fileExt}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, pendingFile, {
+                cacheControl: '3600',
+                contentType: pendingFile.type
+            });
+            
+        console.log("[TRACE] Phản hồi từ Storage:", uploadData, uploadError);
+        
+        if (uploadError) throw new Error("Lỗi tải ảnh: " + uploadError.message);
+
+        const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+        console.log("[TRACE] Bước 4: Tải ảnh thành công, URL:", publicUrl);
+        targetAvatarUrl = publicUrl;
+      }
+
+      console.log("[TRACE] Bước 5: Bắt đầu cập nhật Auth Metadata...");
+      // STEP 2: UPDATE AUTH METADATA
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          full_name: nameValue,
+          avatar_url: targetAvatarUrl,
+        }
+      });
+      if (authError) throw new Error('Lỗi cập nhật hồ sơ: ' + authError.message);
+      console.log("[TRACE] Cập nhật Auth Metadata thành công.");
+
+      console.log("[TRACE] Bước 6: Bắt đầu đồng bộ vào public profiles...");
+      // Đồng bộ vào public profiles
+      const { error: dbError } = await supabase.from('profiles').upsert({
+        id: profile.id,
+        full_name: nameValue,
+        avatar_url: targetAvatarUrl,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+      if (dbError) throw new Error('Lỗi đồng bộ CSDL: ' + dbError.message);
+      console.log("[TRACE] Đồng bộ CSDL thành công.");
+
+      console.log("[TRACE] Bước 7: Gọi router.refresh() và dispatch event...");
+      // STEP 3: SYNC DATA & REFRESH
+      showToast('success', 'CẬP NHẬT THÀNH CÔNG');
+      router.refresh();
+      window.dispatchEvent(new CustomEvent('profile-updated'));
+      setAvatarDeleted(false);
+      setPendingFile(null);
+      if (targetAvatarUrl) setUploadedUrl(targetAvatarUrl);
+      setUploadState({ phase: 'idle' });
+      
+      console.log("[TRACE] HOÀN TẤT: Lưu thành công!");
+
+    } catch (error: any) {
+      console.error("🔥 [TRACE] LỖI BẮT ĐƯỢC:", error);
+      showToast('error', error?.message || 'LỖI HỆ THỐNG');
+      setUploadState({ phase: 'error', message: error?.message || "Lỗi không xác định" });
+    } finally {
+      console.log("[TRACE] Bước Cuối: Tắt trạng thái Loading");
+      setIsSaving(false);
+      setIsUploading(false); // Failsafe
+    }
+  };
+
+
 
   const avatarFallback =
     profile.full_name?.charAt(0).toUpperCase() ??
@@ -347,12 +443,16 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
     };
   }, []);
 
+  const [isUploading, setIsUploading] = useState(false);
+
   // ── File selection handler ────────────────────────────────────────────────
   const handleFileSelect = useCallback(async (file: File) => {
+    setIsUploading(true);
     // Stage 1: Synchronous pre-screen (MIME type, extension, size)
     const quickError = validateFile(file);
     if (quickError) {
       setUploadState({ phase: 'error', message: quickError });
+      setIsUploading(false);
       return;
     }
 
@@ -363,69 +463,21 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
       // Security rejection — file content does not match a safe image signature
       console.warn('[Avatar] Magic byte mismatch — upload aborted.', file.name, file.type);
       setUploadState({ phase: 'error', message: magicError });
+      setIsUploading(false);
       return;
     }
 
-    // Stage 3: Canvas EXIF strip — discard all metadata before upload
-    setUploadState({ phase: 'stripping' });
-    const mimeToExt: Record<string, string> = {
-      'image/jpeg': 'jpg',
-      'image/png':  'png',
-      'image/webp': 'webp',
-    };
-    const safeMime = file.type as 'image/jpeg' | 'image/png' | 'image/webp';
-    const safeExt  = mimeToExt[safeMime] ?? 'jpg';
-
-    let cleanBlob: Blob;
-    try {
-      cleanBlob = await stripExif(file, safeMime);
-    } catch (err) {
-      console.error('[Avatar] EXIF strip failed', err);
-      setUploadState({ phase: 'error', message: 'Xử lý ảnh thất bại. Vui lòng thử ảnh khác.' });
-      return;
-    }
-
-    // Stage 4: Show local object-URL preview using the CLEAN blob (no EXIF)
+    // Stage 3: Show local object-URL preview
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    const objectUrl = URL.createObjectURL(cleanBlob);
+    const objectUrl = URL.createObjectURL(file);
     objectUrlRef.current = objectUrl;
     setAvatarPreview(objectUrl);
-    setUploadState({ phase: 'uploading', progress: 20 });
-
-    // Stage 5: Upload the EXIF-stripped Blob to Supabase Storage
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setUploadState({ phase: 'error', message: 'Phiên đăng nhập hết hạn. Vui lòng tải lại trang.' });
-      return;
-    }
-
-    // crypto.randomUUID() — zero attacker-controlled characters in path
-    const safeUuid = crypto.randomUUID();
-    const filePath = `${user.id}/${safeUuid}.${safeExt}`;
-
-    setUploadState({ phase: 'uploading', progress: 50 });
-
-    const { error: storageError } = await supabase.storage
-      .from('avatars')
-      .upload(filePath, cleanBlob, {   // upload the STRIPPED blob, never the original File
-        cacheControl: '3600',
-        upsert: false,
-        contentType: safeMime,
-      });
-
-    if (storageError) {
-      console.error('[Avatar upload]', storageError.message);
-      setUploadState({ phase: 'error', message: 'Tải ảnh lên thất bại: ' + storageError.message });
-      setAvatarPreview(profile.avatar_url); // revert preview on failure
-      return;
-    }
-
-    // Stage 6: Get the public CDN URL
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
-    setUploadedUrl(urlData.publicUrl);
-    setUploadState({ phase: 'done', publicUrl: urlData.publicUrl });
-  }, [profile.avatar_url]);
+    
+    // Defer actual upload to handleSaveChanges
+    setPendingFile(file);
+    setUploadState({ phase: 'done', publicUrl: objectUrl });
+    setIsUploading(false);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -444,38 +496,13 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
     if (objectUrlRef.current) { URL.revokeObjectURL(objectUrlRef.current); objectUrlRef.current = null; }
     setAvatarPreview(null);
     setUploadedUrl('');
-    setAvatarDeleted(true);   // signal to Server Action → write NULL to DB
+    setPendingFile(null); // Clear deferred file
+    setAvatarDeleted(true);   // signal to write NULL to DB on save
     setUploadState({ phase: 'idle' });
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // 'validating', 'stripping', and 'uploading' all block the Save button
-  const isUploading = (
-    uploadState.phase === 'uploading' ||
-    uploadState.phase === 'validating' ||
-    uploadState.phase === 'stripping'
-  );
-  const canSave = !isPending && !isUploading && nameValidation.valid;
-
-  // Clear toast after 5 s; on success also sync Navbar without hard reload.
-  const toastRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (state) {
-      if (toastRef.current) clearTimeout(toastRef.current);
-      toastRef.current = setTimeout(() => {}, 5000);
-
-      if (state.status === 'success') {
-        // 1. Re-run all Server Components in the current route (busts ISR cache).
-        router.refresh();
-        // 2. Notify the Navbar Client Component to re-fetch profile data.
-        //    `router.refresh()` alone won\'t trigger Client Component useEffects.
-        window.dispatchEvent(new CustomEvent('profile-updated'));
-        // 3. Reset the delete flag so a second save doesn\'t re-delete the avatar.
-        setAvatarDeleted(false);
-      }
-    }
-    return () => { if (toastRef.current) clearTimeout(toastRef.current); };
-  }, [state, router]);
+  const canSave = !isSaving && !isUploading && nameValidation.valid;
 
   const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: 'settings', label: 'Cài Đặt Tài Khoản', icon: <Settings2 size={14} /> },
@@ -572,7 +599,7 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
               style={{ background: 'linear-gradient(90deg, transparent, #00f5ff 50%, transparent)' }}
             />
 
-            <form action={formAction} className="p-8 flex flex-col gap-7">
+            <form onSubmit={(e) => e.preventDefault()} className="p-8 flex flex-col gap-7">
               <div className="flex items-center gap-2">
                 <Settings2 size={16} className="text-neon-cyan" />
                 <h2 className="text-base font-bold text-text-primary">Cài Đặt Tài Khoản</h2>
@@ -629,7 +656,7 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
                   maxLength={NAME_MAX}
                   placeholder="e.g. cyber_hunter_99"
                   required
-                  disabled={isPending}
+                  disabled={isSaving}
                   aria-label="Display name"
                   aria-describedby="full-name-hint"
                   aria-invalid={showNameError}
@@ -822,7 +849,7 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
                   accept="image/jpeg,image/png,image/webp"
                   className="sr-only"
                   onChange={handleInputChange}
-                  disabled={isUploading || isPending}
+                  disabled={isUploading || isSaving}
                   aria-label="Tải ảnh đại diện lên"
                 />
 
@@ -844,28 +871,13 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
                 )}
               </div>
 
-              {/* ── Status toast ─────────────────────────────── */}
-              {state && (
-                <div
-                  role="status"
-                  aria-live="polite"
-                  className={`flex items-center gap-2.5 rounded-lg px-4 py-3 text-sm font-mono border ${
-                    state.status === 'success'
-                      ? 'bg-emerald-950/60 border-emerald-500/30 text-emerald-400'
-                      : 'bg-red-950/60 border-red-500/30 text-red-400'
-                  }`}
-                >
-                  {state.status === 'success'
-                    ? <CheckCircle2 size={15} className="shrink-0" />
-                    : <XCircle size={15} className="shrink-0" />}
-                  {state.message}
-                </div>
-              )}
+              {/* Removed state toast, using alert instead */}
 
               {/* ── Save button ──────────────────────────────── */}
               <button
                 id="profile-save-btn"
-                type="submit"
+                type="button"
+                onClick={handleSaveChanges}
                 disabled={!canSave}
                 aria-disabled={!canSave}
                 className="relative w-full rounded-lg px-6 py-3 font-bold text-sm bg-neon-cyan text-cyber-black hover:bg-neon-cyan-dim disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-cyan focus-visible:ring-offset-2 focus-visible:ring-offset-cyber-surface overflow-hidden group"
@@ -876,7 +888,7 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
                   aria-hidden="true"
                 />
                 <span className="relative flex items-center justify-center gap-2">
-                  {isPending ? (
+                  {isSaving ? (
                     <><Loader2 size={15} className="animate-spin" />Đang lưu…</>
                   ) : isUploading ? (
                     <><Loader2 size={15} className="animate-spin" />Đang tải ảnh…</>
@@ -1050,6 +1062,13 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
           Mọi thay đổi hồ sơ được xác thực phía server · Liên kết phiên · Không bao giờ tin tưởng client
         </p>
       </div>
+
+      {/* Cyberpunk Toast Notification */}
+      {toastMsg && (
+          <div className={`fixed bottom-5 right-5 px-6 py-3 rounded-md border backdrop-blur-md transition-all duration-300 z-50 flex items-center gap-3 shadow-[0_0_15px_rgba(0,0,0,0.5)] ${toastMsg.type === 'success' ? 'bg-black/80 border-cyan-500 text-cyan-400' : 'bg-black/80 border-red-500 text-red-400'}`}>
+              <span className="font-mono text-sm tracking-wider">{toastMsg.text}</span>
+          </div>
+      )}
     </div>
   );
 }

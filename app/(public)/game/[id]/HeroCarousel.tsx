@@ -24,6 +24,8 @@ interface HeroCarouselProps {
   tags:     string[] | null;
   itemId:   string;
   isOwned:  boolean;
+  accountUsername?: string;
+  accountPassword?: string;
   /** Autoplay interval in ms. Default 4 000. */
   interval?: number;
 }
@@ -38,6 +40,8 @@ export default function HeroCarousel({
   tags,
   itemId,
   isOwned,
+  accountUsername,
+  accountPassword,
   interval = 4000,
 }: HeroCarouselProps) {
   const count = images.length;
@@ -378,7 +382,7 @@ export default function HeroCarousel({
 
             {/* CTA buttons logic restored from previous version */}
             <div className="flex flex-col gap-2">
-              <TransactionZone itemId={itemId} price={price} isOwned={isOwned} />
+              <TransactionZone itemId={itemId} price={price} isOwned={isOwned} accountUsername={accountUsername} accountPassword={accountPassword} />
               {!isOwned && <AddToCartButton itemId={itemId} />}
             </div>
 

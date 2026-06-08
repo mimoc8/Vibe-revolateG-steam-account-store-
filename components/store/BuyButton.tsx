@@ -1,69 +1,17 @@
 'use client';
 
-import { useTransition, useState } from 'react';
-import { buyItem, type BuyItemResult } from '@/actions/marketplace';
-import { Loader2, ShieldCheck, ShoppingCart } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ShieldCheck, ShoppingCart } from 'lucide-react';
 
 interface BuyButtonProps {
   itemId: string;
 }
 
 export default function BuyButton({ itemId }: BuyButtonProps) {
-  const [isPending, startTransition] = useTransition();
-  const [result, setResult] = useState<BuyItemResult | null>(null);
+  const router = useRouter();
 
-  // After a successful purchase the parent Server Component re-renders
-  // (via revalidatePath) and swaps this button for the "owned" variant.
-  // The local error state shows feedback without a full page reload.
   function handleBuy() {
-    setResult(null);
-    startTransition(async () => {
-      const res = await buyItem(itemId);
-      setResult(res);
-    });
-  }
-
-  // ── Loading state ─────────────────────────────────────────
-  if (isPending) {
-    return (
-      <button
-        disabled
-        aria-busy="true"
-        className="
-          flex w-full items-center justify-center gap-2
-          rounded-md py-2.5
-          font-mono text-xs font-bold uppercase tracking-widest
-          bg-[rgba(0,245,255,0.15)] text-[var(--color-neon-cyan)]
-          border border-[var(--color-neon-cyan)]
-          cursor-not-allowed opacity-80
-        "
-      >
-        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
-        Đang xử lý...
-      </button>
-    );
-  }
-
-  // ── Error feedback (flash, then show buy button again) ────
-  if (result && 'error' in result) {
-    return (
-      <button
-        onClick={handleBuy}
-        title={result.error}
-        className="
-          flex w-full items-center justify-center gap-1.5
-          rounded-md py-2.5
-          font-mono text-[10px] font-bold uppercase tracking-widest
-          bg-red-900/20 text-red-400
-          border border-red-500/50
-          transition-all duration-200
-          hover:bg-red-900/40
-          active:scale-95
-        "
-      >
-        {result.error}
-      </button>
-    );
+    router.push(`/game/${itemId}`);
   }
 
   // ── Default: buy button ───────────────────────────────────

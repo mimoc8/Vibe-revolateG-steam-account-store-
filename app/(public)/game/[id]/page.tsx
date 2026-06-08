@@ -1,10 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, Tag, Monitor } from "lucide-react";
+import { ArrowLeft, CalendarDays, Tag, Monitor, Image as ImageIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import type { MarketItem } from "@/lib/types/store";
-import HeroCarousel from "./HeroCarousel";
+import GameCarousel from "@/components/store/GameCarousel";
+import TransactionZone from "@/components/store/TransactionZone";
 import type { Metadata } from "next";
+
+export const dynamic = 'force-dynamic';
 
 /* ─────────────────────────────────────────────────────────────
    Helpers
@@ -25,17 +28,19 @@ const FALLBACK_IMG =
 /* ─────────────────────────────────────────────────────────────
    Dynamic metadata
 ───────────────────────────────────────────────────────────── */
-export async function generateMetadata({
-  params,
-}: {
+export async function generateMetadata(props: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
+  const params = await props.params;
+  const gameId = params?.id;
+
+  if (!gameId || gameId === 'undefined') return { title: "Không tìm thấy" };
+
   const supabase = await createClient();
   const { data } = await supabase
     .from("market_items")
     .select("title, description")
-    .eq("id", id)
+    .eq("id", gameId)
     .single();
 
   if (!data) return { title: "Không tìm thấy" };
@@ -48,35 +53,44 @@ export async function generateMetadata({
 /* ─────────────────────────────────────────────────────────────
    Data fetching
 ───────────────────────────────────────────────────────────── */
-async function getPageData(id: string): Promise<{ item: MarketItem; isOwned: boolean }> {
+async function getPageData(gameId: string): Promise<{ item: MarketItem; isOwned: boolean }> {
   const supabase = await createClient();
 
-  const [itemResult, userResult] = await Promise.all([
-    supabase
-      .from("market_items")
-      .select("id, title, price, tags, image_url, gallery, description, sys_requirements, created_at")
-      .eq("id", id)
-      .single(),
-    supabase.auth.getUser(),
-  ]);
+  // 1. PUBLIC FETCH (Critical: Do not block by auth)
+  const { data: game, error: gameError } = await supabase
+    .from('market_items')
+    .select('*')
+    .eq('id', gameId)
+    .single();
 
-  if (itemResult.error || !itemResult.data) notFound();
-
-  const item = itemResult.data as MarketItem;
-  const user = userResult.data.user;
-
-  let isOwned = false;
-  if (user) {
-    const { data: purchase } = await supabase
-      .from("purchases")
-      .select("item_id")
-      .eq("user_id", user.id)
-      .eq("item_id", id)
-      .maybeSingle();
-    isOwned = !!purchase;
+  if (gameError || !game) {
+    console.error("[Detail Page] Fetch Game Error:", gameError);
+    notFound();
   }
 
-  return { item, isOwned };
+  // 2. AUTHENTICATION ISOLATION
+  const { data: { user } } = await supabase.auth.getUser();
+
+  let initialIsUnlocked = false;
+  if (user && user.id) {
+    try {
+      const { data: orders, error: orderError } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("game_id", gameId);
+        
+      if (orderError) {
+        console.error("[Detail Page] Check Ownership Error:", orderError);
+      } else if (orders && orders.length > 0) {
+        initialIsUnlocked = true;
+      }
+    } catch (e) {
+      console.error("[Detail Page] Check Ownership Exception:", e);
+    }
+  }
+
+  return { item: game as MarketItem, isOwned: initialIsUnlocked };
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -162,23 +176,20 @@ function SysRequirements({ specs }: { specs: NonNullable<MarketItem["sys_require
 /* ─────────────────────────────────────────────────────────────
    Page
 ───────────────────────────────────────────────────────────── */
-export default async function GameDetailPage({
-  params,
-}: {
+export default async function GameDetailPage(props: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const { item, isOwned } = await getPageData(id);
+  const params = await props.params;
+  const gameId = params?.id;
 
-  const { title, price, tags, image_url, gallery, description, sys_requirements, created_at } = item;
+  if (!gameId || gameId === 'undefined') return notFound();
 
-  // Build the image list for the carousel: gallery first, then fallback to image_url
-  const galleryImages: string[] =
-    gallery && gallery.length > 0
-      ? gallery
-      : image_url
-      ? [image_url]
-      : [FALLBACK_IMG];
+  const { item, isOwned } = await getPageData(gameId);
+
+  const { title, price, tags, image_url, gallery, description, sys_requirements, created_at, account_username, account_password } = item;
+
+  // All images combined for the new carousel
+  const allImages = [image_url, ...(gallery || [])].filter(Boolean) as string[];
 
   return (
     <div className="grid-bg min-h-screen">
@@ -207,17 +218,71 @@ export default async function GameDetailPage({
         Quay lại
       </Link>
 
-      {/* ── Steam-style split hero carousel ── */}
+      {/* ── 2-Column Detail Layout ── */}
       <div className="mx-auto max-w-7xl px-4 pt-6 md:px-8">
-        <HeroCarousel
-          images={galleryImages}
-          title={title}
-          price={price}
-          tags={tags}
-          itemId={item.id}
-          isOwned={isOwned}
-          interval={4000}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* LEFT COLUMN: Carousel */}
+          <div className="lg:col-span-2">
+            <GameCarousel images={allImages} />
+          </div>
+
+          {/* RIGHT COLUMN: Info / Buy Box */}
+          <div className="lg:col-span-1 flex flex-col gap-6 p-6 rounded-lg border border-[var(--color-neon-cyan)] shadow-[0_0_20px_rgba(0,245,255,0.1)] bg-black/60 backdrop-blur-md">
+            
+            <div className="flex flex-col gap-2">
+              <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-400/80">
+                Tài khoản game
+              </p>
+              <h1 className="font-mono text-2xl font-black leading-tight tracking-tight text-[var(--color-text-primary)]"
+                  style={{ textShadow: isOwned ? '0 0 20px rgba(52,211,153,0.3)' : '0 0 20px rgba(0,245,255,0.25)' }}>
+                {title}
+              </h1>
+              {isOwned && (
+                <span className="inline-flex w-fit items-center gap-1.5 rounded-sm px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-widest bg-emerald-500/15 border border-emerald-500/40 text-emerald-400">
+                  ✓ Đã sở hữu
+                </span>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="h-px w-full bg-gradient-to-r from-cyan-400 via-cyan-400/10 to-transparent" />
+
+            {/* Tags */}
+            {tags && tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.slice(0, 4).map((tag) => (
+                  <span key={tag} className="font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-sm border border-cyan-400/30 bg-cyan-400/10 text-cyan-400/90">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="flex-1" />
+
+            {/* Transaction / Unlock Flow */}
+            <div className="flex flex-col gap-2">
+              <TransactionZone game={item} initialIsUnlocked={isOwned} />
+            </div>
+
+            {/* Micro Badges */}
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+              {[
+                { icon: '🔒', label: 'Bảo mật SSL' },
+                { icon: '⚡', label: 'Giao tức thì' },
+                { icon: '🛡️', label: 'BH 7 ngày' },
+                { icon: '💬', label: 'Hỗ trợ 24/7' },
+              ].map(({ icon, label }) => (
+                <div key={label} className="flex items-center gap-1.5 px-2 py-1.5 rounded-sm border border-white/5 bg-white/5">
+                  <span className="text-xs" aria-hidden="true">{icon}</span>
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">{label}</span>
+                </div>
+              ))}
+            </div>
+            
+          </div>
+        </div>
       </div>
 
       {/* ── Supplemental content (description + sys req) ── */}
@@ -273,6 +338,7 @@ export default async function GameDetailPage({
 
           {/* System requirements */}
           {sys_requirements && <SysRequirements specs={sys_requirements} />}
+
 
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-6">

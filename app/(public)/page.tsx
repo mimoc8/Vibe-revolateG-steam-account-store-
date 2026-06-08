@@ -4,40 +4,35 @@ export const dynamic = "force-dynamic";
 import SteamCarousel from "@/components/SteamCarousel";
 import TrustIndicators from "@/components/home/TrustIndicators";
 import ProductGrid from "@/components/store/ProductGrid";
-import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const { data: rawGames, error } = await supabase
-    .from('market_items')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(6);
+  // Fetch with no-store to ensure fresh data and bypass cache completely
+  const dbUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/market_items?select=*&order=created_at.desc&limit=6`;
+  const response = await fetch(dbUrl, {
+    cache: 'no-store', // This forces Next.js to always fetch fresh data
+    headers: {
+      apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+    },
+  });
 
-  if (error) {
-    console.error("Supabase fetch error:", error.message);
+  let rawGames = [];
+  if (response.ok) {
+    rawGames = await response.json();
+  } else {
+    console.error("Supabase fetch error:", await response.text());
   }
 
-  // Format the data to match SteamCarousel props
-  const formattedGames = (rawGames || []).map((game: any) => {
-    let processedImages = [];
-    
-    // 1. Strictly extract from the 'gallery' array
-    if (Array.isArray(game.gallery) && game.gallery.length > 0) {
-      processedImages = game.gallery;
-    } 
-    // 2. Fallback if gallery is empty
-    else if (game.image_url) {
-      processedImages = [game.image_url];
-    } else {
-      processedImages = ['https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg'];
-    }
+  // Bulletproof map check
+  const safeGames = Array.isArray(rawGames) ? rawGames : [];
 
+  // Format the data to match SteamCarousel props
+  const formattedGames = safeGames.map((game: any) => {
     return {
       ...game,
       title: game.title || game.name || 'Untitled Game',
       // The SteamCarousel component expects the prop to be named 'images'
-      images: processedImages 
+      images: Array.isArray(game.gallery) ? game.gallery : []
     };
   });
 
