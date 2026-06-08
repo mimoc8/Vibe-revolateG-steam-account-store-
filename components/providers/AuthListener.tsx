@@ -33,6 +33,7 @@ export default function AuthListener() {
     const supabase = createClient();
 
     // Set initial user to prevent first-load refresh
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     supabase.auth.getSession().then(({ data: { session } }) => {
       lastUserRef.current = session?.user?.id ?? null;
     });

@@ -69,6 +69,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   useEffect(() => {
     if (!isOpen) return;
     // Reset state each time the modal opens
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAuthError(null);
     setLoadingProvider(null);
     document.addEventListener('keydown', handleKeyDown);

@@ -2,43 +2,31 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
 import { Loader2, ShieldAlert } from 'lucide-react';
+import { loginAdmin } from '@/actions/adminAuth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const formData = new FormData(e.currentTarget);
+      const result = await loginAdmin(formData);
 
-      if (signInError) throw signInError;
-
-      if (data.user?.email === 'luzmiuforerver@gmail.com') {
+      if (result.error) {
+        setError(result.error);
+      } else if (result.success) {
         router.push('/cyber-core-xyz');
         router.refresh();
-      } else {
-        await supabase.auth.signOut();
-        throw new Error("UNAUTHORIZED ACCESS: Kẻ xâm nhập đã bị ghi log!");
       }
     } catch (err: any) {
-      setError(err.message);
+      setError("Lỗi hệ thống: Không thể kết nối đến máy chủ xác thực.");
     } finally {
       setIsLoading(false);
     }
@@ -78,18 +66,17 @@ export default function AdminLoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-6 relative z-10">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 relative z-10">
           <div className="flex flex-col gap-2">
             <label className="text-xs font-mono text-cyan-400 uppercase tracking-widest">
-              ID Đặc vụ (Email)
+              ID Đặc vụ (Username)
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              type="text"
               required
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 font-mono transition-colors"
-              placeholder="admin@cybersteam.com"
+              placeholder="admin"
             />
           </div>
 
@@ -98,9 +85,8 @@ export default function AdminLoginPage() {
               Mã bảo mật (Password)
             </label>
             <input
+              name="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 font-mono transition-colors"
               placeholder="••••••••"

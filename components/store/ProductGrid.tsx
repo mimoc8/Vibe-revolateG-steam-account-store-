@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type { MarketItem } from "@/lib/types/store";
 import MarketItemCard from "./MarketItemCard";
-import { ShoppingBag, AlertTriangle, PackageOpen } from "lucide-react";
+import { AlertTriangle, PackageOpen } from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────
    Data helpers
@@ -66,7 +66,7 @@ function EmptyState() {
 /* ────────────────────────────────────────────────────────────
    Main Server Component
 ──────────────────────────────────────────────────────────── */
-export default async function ProductGrid({ items }: { items: any[] }) {
+export default async function ProductGrid({ items }: { items: MarketItem[] }) {
   // Fetch ownership data for the grid items
   const ownedItemIds = await getOwnedItemIds();
 

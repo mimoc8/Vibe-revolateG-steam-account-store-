@@ -26,7 +26,6 @@ interface NavbarProps {
 
 export default function Navbar({ initialUser, initialProfile }: NavbarProps) {
   const pathname  = usePathname();
-  const router    = useRouter();
   // Initialise directly from server-provided values — no loading state needed.
   const [user,    setUser]    = useState<SupabaseUser | null>(initialUser);
   const [profile, setProfile] = useState<NavbarProfile | null>(initialProfile);
