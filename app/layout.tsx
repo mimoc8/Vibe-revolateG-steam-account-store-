@@ -21,6 +21,9 @@ export const metadata: Metadata = {
   description:
     "Buy and sell premium Steam game accounts in the ultimate cyberpunk marketplace. Secure, fast, and trusted.",
   keywords: ["steam accounts", "game marketplace", "buy steam accounts", "revolateg"],
+  verification: {
+    google: "ljyy8rH0SvQH_eiD7z3UF7KFfqJ5HzSxXgN-1YGOLWs",
+  },
 };
 
 export default function RootLayout({
