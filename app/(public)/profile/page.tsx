@@ -41,7 +41,7 @@ export default async function ProfilePage() {
       .eq('id', user.id)
       .single(),
     supabase
-      .from('orders')
+      .from('purchases')
       .select(`*, market_items(*)`)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false }),

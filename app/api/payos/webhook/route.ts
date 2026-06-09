@@ -15,19 +15,24 @@ export async function POST(request: Request) {
     console.log('[Webhook] Received:', body);
 
     // Xác thực Webhook data (Checksum) - bắt buộc để chống Fake Webhook
-    // const webhookData = payos.verifyPaymentWebhookData(body);
-    // (Bỏ qua verify strict trong code mẫu nếu chưa thiết lập đủ)
+    let webhookData;
+    try {
+      webhookData = await payos.webhooks.verify(body);
+    } catch (e) {
+      console.error('[Webhook] Invalid webhook signature', e);
+      return NextResponse.json({ success: false, message: 'Invalid signature' }, { status: 400 });
+    }
     
     // Khi PayOS gọi, data thường nằm trong body.data
     const data = body.data || body;
-    const orderCode = data.orderCode;
+    const orderCode = webhookData.orderCode || data.orderCode;
 
     if (body.success === true || data.code === '00' || body.code === '00') {
       // 1. Tìm đơn hàng
       const { data: order, error: fetchError } = await supabase
         .from('orders')
         .select('*')
-        .eq('payos_order_code', orderCode)
+        .eq('order_code', String(orderCode))
         .single();
 
       if (fetchError || !order) {
