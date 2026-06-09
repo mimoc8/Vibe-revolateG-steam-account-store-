@@ -4,23 +4,23 @@ const FOOTER_LINKS: { heading: string; links: { label: string; href: string }[] 
   {
     heading: "Về CyberSteam",
     links: [
-      { label: "Giới thiệu", href: "#" },
-      { label: "Hướng dẫn mua hàng", href: "#" },
-      { label: "Chính sách bảo hành", href: "#" },
+      { label: "Giới thiệu", href: "/about" },
+      { label: "Hướng dẫn mua hàng", href: "/how-to-buy" },
+      { label: "Chính sách bảo hành", href: "/warranty" },
     ],
   },
   {
     heading: "Hỗ trợ khách hàng",
     links: [
-      { label: "Liên hệ hỗ trợ", href: "#" },
-      { label: "Câu hỏi thường gặp", href: "#" },
+      { label: "Liên hệ hỗ trợ", href: "/contact" },
+      { label: "Câu hỏi thường gặp", href: "/faq" },
     ],
   },
   {
     heading: "Pháp lý",
     links: [
-      { label: "Điều khoản dịch vụ", href: "#" },
-      { label: "Chính sách bảo mật", href: "#" },
+      { label: "Điều khoản dịch vụ", href: "/terms" },
+      { label: "Chính sách bảo mật", href: "/privacy" },
     ],
   },
 ];
