@@ -17,7 +17,7 @@ export default function BuyButton({ itemId }: BuyButtonProps) {
     setIsProcessing(true);
     try {
       const result = await processDirectCheckout(itemId);
-      if (result.error) {
+      if ('error' in result) {
         alert(result.error);
         if (result.error.includes('đăng nhập')) {
            router.push('/login');

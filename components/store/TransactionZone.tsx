@@ -55,7 +55,7 @@ export default function TransactionZone({ game, initialIsUnlocked }: Transaction
     setIsProcessing(true);
     try {
       const result = await processDirectCheckout(game.id);
-      if (result.error) {
+      if ('error' in result) {
         setToastMessage(result.error);
         setTimeout(() => setToastMessage(null), 3000);
         if (result.error.includes('đăng nhập')) {
