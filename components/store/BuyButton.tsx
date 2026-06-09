@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, ShoppingCart, Loader2 } from 'lucide-react';
 import { processDirectCheckout } from '@/actions/checkout';
-import toast from 'react-hot-toast';
 
 interface BuyButtonProps {
   itemId: string;
@@ -19,7 +18,7 @@ export default function BuyButton({ itemId }: BuyButtonProps) {
     try {
       const result = await processDirectCheckout(itemId);
       if (result.error) {
-        toast.error(result.error);
+        alert(result.error);
         if (result.error.includes('đăng nhập')) {
            router.push('/login');
         }
@@ -27,7 +26,7 @@ export default function BuyButton({ itemId }: BuyButtonProps) {
         window.location.href = result.checkoutUrl;
       }
     } catch (err: any) {
-      toast.error(err.message || 'Có lỗi xảy ra');
+      alert(err.message || 'Có lỗi xảy ra');
     } finally {
       setIsProcessing(false);
     }
