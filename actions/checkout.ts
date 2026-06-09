@@ -71,7 +71,11 @@ export async function processCheckout(): Promise<CheckoutResult> {
 
   /* ── 4. Create PayOS checkout link ── */
   try {
-     const domain = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+     const domain = process.env.NEXT_PUBLIC_APP_URL 
+        ? process.env.NEXT_PUBLIC_APP_URL 
+        : process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : 'http://localhost:3000';
      const body = {
         orderCode: orderCode,
         amount: subtotal,
@@ -80,7 +84,7 @@ export async function processCheckout(): Promise<CheckoutResult> {
         cancelUrl: `${domain}/cart`,    // redirect về giỏ hàng nếu hủy
      };
      
-     const paymentLinkRes = await payos.createPaymentLink(body);
+     const paymentLinkRes = await payos.paymentRequests.create(body);
      
      return { success: true, checkoutUrl: paymentLinkRes.checkoutUrl };
   } catch (payosError: any) {
