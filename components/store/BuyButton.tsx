@@ -1,7 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, ShoppingCart } from 'lucide-react';
+import { ShieldCheck, ShoppingCart, Loader2 } from 'lucide-react';
+import { processDirectCheckout } from '@/actions/checkout';
+import toast from 'react-hot-toast';
 
 interface BuyButtonProps {
   itemId: string;
@@ -9,9 +12,25 @@ interface BuyButtonProps {
 
 export default function BuyButton({ itemId }: BuyButtonProps) {
   const router = useRouter();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  function handleBuy() {
-    router.push(`/game/${itemId}`);
+  async function handleBuy() {
+    setIsProcessing(true);
+    try {
+      const result = await processDirectCheckout(itemId);
+      if (result.error) {
+        toast.error(result.error);
+        if (result.error.includes('đăng nhập')) {
+           router.push('/login');
+        }
+      } else if (result.success && result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Có lỗi xảy ra');
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   // ── Default: buy button ───────────────────────────────────
@@ -19,6 +38,7 @@ export default function BuyButton({ itemId }: BuyButtonProps) {
     <button
       id={`buy-btn-${itemId}`}
       onClick={handleBuy}
+      disabled={isProcessing}
       className="
         flex w-full items-center justify-center gap-2
         rounded-md py-2.5
@@ -32,10 +52,15 @@ export default function BuyButton({ itemId }: BuyButtonProps) {
         hover:text-white
         hover:shadow-[0_0_20px_rgba(255,0,255,0.45)]
         active:scale-95
+        disabled:opacity-50 disabled:pointer-events-none
       "
     >
-      <ShoppingCart className="h-3 w-3" aria-hidden="true" />
-      Mua Ngay
+      {isProcessing ? (
+        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+      ) : (
+        <ShoppingCart className="h-3 w-3" aria-hidden="true" />
+      )}
+      {isProcessing ? 'Đang xử lý...' : 'Mua Ngay'}
     </button>
   );
 }

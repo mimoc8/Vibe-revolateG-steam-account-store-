@@ -6,6 +6,7 @@ import { Loader2, Copy, CheckCheck, MonitorPlay, KeyRound, ShoppingCart } from '
 import { createClient } from '@/lib/supabase/client';
 
 import { addToCart } from '@/actions/cart';
+import { processDirectCheckout } from '@/actions/checkout';
 
 const vnd = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
 const formatVND = (n: number) => vnd.format(n);
@@ -53,25 +54,21 @@ export default function TransactionZone({ game, initialIsUnlocked }: Transaction
   const handleBuyNow = async () => {
     setIsProcessing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        alert("Vui lòng đăng nhập để mua game!");
-        setIsProcessing(false);
-        return;
+      const result = await processDirectCheckout(game.id);
+      if (result.error) {
+        setToastMessage(result.error);
+        setTimeout(() => setToastMessage(null), 3000);
+        if (result.error.includes('đăng nhập')) {
+           router.push('/login');
+        }
+      } else if (result.success && result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
       }
-
-      // Thêm vào giỏ hàng
-      const result = await addToCart(game.id);
-      if ('error' in result && result.code !== 'DUPLICATE') {
-        alert(result.error || 'Lỗi thêm vào giỏ hàng');
-        setIsProcessing(false);
-        return;
-      }
-
-      // Chuyển hướng sang trang giỏ hàng để thanh toán
-      router.push('/cart');
-    } catch (err) {
-      console.error("[TransactionZone] Unlock error:", err);
+    } catch (err: any) {
+      console.error("[TransactionZone] Checkout error:", err);
+      setToastMessage(err.message || 'Lỗi xử lý thanh toán');
+      setTimeout(() => setToastMessage(null), 3000);
+    } finally {
       setIsProcessing(false);
     }
   };

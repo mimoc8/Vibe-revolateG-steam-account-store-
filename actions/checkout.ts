@@ -1,5 +1,6 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { payos } from '@/lib/payos';
@@ -71,11 +72,15 @@ export async function processCheckout(): Promise<CheckoutResult> {
 
   /* ── 4. Create PayOS checkout link ── */
   try {
-     const domain = process.env.NEXT_PUBLIC_APP_URL 
-        ? process.env.NEXT_PUBLIC_APP_URL 
-        : process.env.VERCEL_URL 
-          ? `https://${process.env.VERCEL_URL}` 
-          : 'http://localhost:3000';
+     const headersList = await headers();
+     const origin = headersList.get('origin');
+     let domain = process.env.NEXT_PUBLIC_APP_URL || origin;
+     
+     if (!domain) {
+       // fallback
+       domain = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+     }
+
      const body = {
         orderCode: orderCode,
         amount: subtotal,
@@ -89,6 +94,88 @@ export async function processCheckout(): Promise<CheckoutResult> {
      return { success: true, checkoutUrl: paymentLinkRes.checkoutUrl };
   } catch (payosError: any) {
      console.error('[processCheckout] PayOS error:', payosError);
+     return { error: 'Không thể kết nối cổng thanh toán.' };
+  }
+}
+
+export async function processDirectCheckout(itemId: string): Promise<CheckoutResult> {
+  const supabase = await createClient();
+
+  /* ── 1. Auth guard ── */
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    throw new Error('UNAUTHORIZED: Vui lòng đăng nhập để thanh toán.');
+  }
+
+  /* ── 2. Fetch single item price ── */
+  const { data: item, error: itemError } = await supabase
+    .from('market_items')
+    .select('title, price')
+    .eq('id', itemId)
+    .single();
+
+  if (itemError || !item) {
+    console.error('[processDirectCheckout] item fetch error:', itemError?.message);
+    return { error: 'Không tìm thấy sản phẩm.' };
+  }
+
+  const subtotal = item.price;
+  if (subtotal <= 0) {
+     return { error: 'Giá trị sản phẩm không hợp lệ' };
+  }
+
+  // Tạo orderCode cho PayOS (number <= 9007199254740991)
+  const orderCode = Number(String(Date.now()).slice(-6) + Math.floor(Math.random() * 1000));
+  
+  const cartSnapshot = [{
+      item_id: itemId,
+      title: item.title,
+      price: item.price
+  }];
+
+  /* ── 3. Insert pending order into Database ── */
+  const { error: insertError } = await supabase
+    .from('orders')
+    .insert({
+      user_id: user.id,
+      price: subtotal,
+      status: 'pending',
+      order_code: String(orderCode),
+      cart_snapshot: cartSnapshot
+    });
+
+  if (insertError) {
+     console.error('[processDirectCheckout] insert order error:', insertError.message);
+     return { error: 'Không thể tạo đơn hàng. Vui lòng thử lại.' };
+  }
+
+  /* ── 4. Create PayOS checkout link ── */
+  try {
+     const headersList = await headers();
+     const origin = headersList.get('origin');
+     let domain = process.env.NEXT_PUBLIC_APP_URL || origin;
+     
+     if (!domain) {
+       domain = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+     }
+
+     const body = {
+        orderCode: orderCode,
+        amount: subtotal,
+        description: `Mua game CS ${orderCode}`,
+        returnUrl: `${domain}/profile`, // redirect về trang cá nhân sau khi TT
+        cancelUrl: `${domain}/game/${itemId}`, // redirect về lại game detail nếu hủy
+     };
+     
+     const paymentLinkRes = await payos.paymentRequests.create(body);
+     
+     return { success: true, checkoutUrl: paymentLinkRes.checkoutUrl };
+  } catch (payosError: any) {
+     console.error('[processDirectCheckout] PayOS error:', payosError);
      return { error: 'Không thể kết nối cổng thanh toán.' };
   }
 }
