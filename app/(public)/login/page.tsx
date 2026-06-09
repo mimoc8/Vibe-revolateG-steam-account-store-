@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Zap, AlertTriangle, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -32,7 +32,7 @@ const FacebookIcon = () => (
 /* ── Animated cyberpunk particles in the background ── */
 const PARTICLES = Array.from({ length: 24 }, (_, i) => i);
 
-export default function LoginPage() {
+function LoginContent() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   // The `next` param carries the protected path the user was trying to reach.
@@ -326,5 +326,17 @@ export default function LoginPage() {
         }
       `}</style>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-[#020408]">
+        <Loader2 className="animate-spin text-cyan-400" size={32} />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
