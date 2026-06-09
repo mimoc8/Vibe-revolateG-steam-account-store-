@@ -33,6 +33,7 @@ export default function TransactionsTab() {
           status,
           user_id,
           created_at,
+          cart_snapshot,
           market_items ( title )
         `)
         .order('created_at', { ascending: false })
@@ -42,7 +43,7 @@ export default function TransactionsTab() {
         console.warn("Lỗi khi fetch orders (có thể DB chưa có cột status), chuyển sang fallback:", ordersError);
         const fallback = await supabase
           .from('orders')
-          .select(`id, price, user_id, created_at, market_items ( title )`)
+          .select(`id, price, status, user_id, created_at, cart_snapshot, market_items ( title )`)
           .order('created_at', { ascending: false })
           .limit(50);
           
@@ -133,10 +134,12 @@ export default function TransactionsTab() {
                 <tr>
                   <td colSpan={6} className="text-center py-8 text-gray-500">Chưa có giao dịch nào.</td>
                 </tr>
-              ) : transactions.map((txn, idx) => {
-                // Determine format based on relation arrays
+              ) : transactions.map((txn: any, idx) => {
+                // Determine format based on relation arrays or cart_snapshot
                 let gameTitle = "Không xác định";
-                if (txn.market_items) {
+                if (txn.cart_snapshot && Array.isArray(txn.cart_snapshot) && txn.cart_snapshot.length > 0) {
+                   gameTitle = txn.cart_snapshot.map((item: any) => item.title).join(', ');
+                } else if (txn.market_items) {
                    gameTitle = Array.isArray(txn.market_items) ? txn.market_items[0]?.title : txn.market_items.title;
                 }
                 

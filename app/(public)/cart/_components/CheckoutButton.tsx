@@ -20,7 +20,7 @@ export default function CheckoutButton() {
 
   function handleCheckout() {
     startTransition(async () => {
-      let result: { success?: true; error?: string };
+      let result: { success?: true; error?: string; checkoutUrl?: string };
 
       try {
         result = await processCheckout();
@@ -38,11 +38,11 @@ export default function CheckoutButton() {
       }
 
       // ── SUCCESS ──
-      // revalidatePath('/', 'layout') already ran on the server, so the
-      // Next.js data cache is stale. A hard browser navigation (instead of
-      // router.push) forces a full page reload on landing — the Navbar
-      // re-mounts fresh and reads the 0-cart count directly from Supabase.
-      window.location.href = '/';
+      if (result.success && result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      } else {
+        window.location.href = '/';
+      }
     });
   }
 
