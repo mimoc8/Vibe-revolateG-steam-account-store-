@@ -74,15 +74,15 @@ async function getPageData(gameId: string): Promise<{ item: MarketItem; isOwned:
   let initialIsUnlocked = false;
   if (user && user.id) {
     try {
-      const { data: orders, error: orderError } = await supabase
-        .from("orders")
+      const { data: purchases, error: purchaseError } = await supabase
+        .from("purchases")
         .select("id")
         .eq("user_id", user.id)
-        .eq("game_id", gameId);
+        .eq("item_id", gameId);
 
-      if (orderError) {
-        console.error("[Detail Page] Check Ownership Error:", orderError);
-      } else if (orders && orders.length > 0) {
+      if (purchaseError) {
+        console.error("[Detail Page] Check Ownership Error:", purchaseError);
+      } else if (purchases && purchases.length > 0) {
         initialIsUnlocked = true;
       }
     } catch (e) {

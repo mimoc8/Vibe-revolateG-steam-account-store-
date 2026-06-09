@@ -60,35 +60,18 @@ export default function TransactionZone({ game, initialIsUnlocked }: Transaction
         return;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const dbUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/orders`;
-      const res = await fetch(dbUrl, {
-        method: "POST",
-        headers: {
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          Authorization: `Bearer ${session?.access_token || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-          Prefer: "return=minimal",
-        },
-        body: JSON.stringify({ 
-          game_id: game.id, 
-          price: Number(game.price),
-          user_id: user.id
-        }),
-      });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Supabase Transaction Error:", errorText);
-        throw new Error(`Lỗi hệ thống: ${res.status} - ${errorText}`);
+      // Thêm vào giỏ hàng
+      const result = await addToCart(game.id);
+      if ('error' in result && result.code !== 'DUPLICATE') {
+        alert(result.error || 'Lỗi thêm vào giỏ hàng');
+        setIsProcessing(false);
+        return;
       }
 
-      setIsUnlocked(true);
-      router.refresh();
+      // Chuyển hướng sang trang giỏ hàng để thanh toán
+      router.push('/cart');
     } catch (err) {
       console.error("[TransactionZone] Unlock error:", err);
-    } finally {
       setIsProcessing(false);
     }
   };
