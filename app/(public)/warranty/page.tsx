@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { ShieldCheck } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Chính sách bảo hành · CyberSteam',
-  description: 'Chính sách bảo hành tài khoản game mua tại CyberSteam.',
+  title: 'Chính sách bảo hành · RevolateG',
+  description: 'Chính sách bảo hành tài khoản game mua tại RevolateG.',
 };
 
 export default function WarrantyPage() {

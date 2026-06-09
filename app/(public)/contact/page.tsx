@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Mail } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Liên hệ hỗ trợ · CyberSteam',
-  description: 'Liên hệ với đội ngũ chăm sóc khách hàng của CyberSteam.',
+  title: 'Liên hệ hỗ trợ · RevolateG',
+  description: 'Liên hệ với đội ngũ chăm sóc khách hàng của RevolateG.',
 };
 
 export default function ContactPage() {
@@ -18,7 +18,7 @@ export default function ContactPage() {
             Liên Hệ
           </h1>
           <p className="mt-4 font-mono text-sm text-[var(--color-text-muted)] md:text-base">
-            Đội ngũ CyberSteam luôn sẵn sàng hỗ trợ bạn 24/7.
+            Đội ngũ RevolateG luôn sẵn sàng hỗ trợ bạn 24/7.
           </p>
         </div>
 
@@ -32,8 +32,8 @@ export default function ContactPage() {
             <a href="#" className="flex items-center justify-center gap-3 rounded-lg border border-indigo-500/30 bg-indigo-500/10 py-4 px-6 text-indigo-400 transition-all hover:bg-indigo-500/20 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]">
               Cộng đồng Discord
             </a>
-            <a href="mailto:support@cybersteam.vn" className="flex items-center justify-center gap-3 rounded-lg border border-slate-500/30 bg-slate-500/10 py-4 px-6 text-slate-300 transition-all hover:bg-slate-500/20">
-              support@cybersteam.vn
+            <a href="mailto:support@revolateg.vn" className="flex items-center justify-center gap-3 rounded-lg border border-slate-500/30 bg-slate-500/10 py-4 px-6 text-slate-300 transition-all hover:bg-slate-500/20">
+              support@revolateg.vn
             </a>
           </div>
         </div>

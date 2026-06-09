@@ -386,7 +386,7 @@ export default function AccountDetailView({ account }: Props) {
               <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <TrustBadge icon={<ShieldCheck size={17} />} title="Escrow Protection" description="Funds held securely. Released only after you confirm delivery." />
                 <TrustBadge icon={<Package size={17} />}     title="Instant Delivery"  description="Credentials sent within minutes of payment confirmation." />
-                <TrustBadge icon={<BadgeCheck size={17} />}  title="Verified Seller"   description="Identity & account ownership confirmed by CyberSteam." />
+                <TrustBadge icon={<BadgeCheck size={17} />}  title="Verified Seller"   description="Identity & account ownership confirmed by RevolateG." />
                 <TrustBadge icon={<Star size={17} />}        title="Buyer Guarantee"   description="Full refund if the account doesn't match this listing." />
               </div>
             </div>

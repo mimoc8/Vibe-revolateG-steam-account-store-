@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 // Hardcoded admin credentials (you can move this to .env later: process.env.ADMIN_USERNAME)
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "cybersteam2026";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "revolateg2026";
 
 export async function loginAdmin(formData: FormData) {
   const email = formData.get("email") as string;
@@ -17,7 +17,7 @@ export async function loginAdmin(formData: FormData) {
   if (email === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
     // Nếu đúng thông tin, set một cookie HTTP-Only tên là 'admin_token'
     const cookieStore = await cookies();
-    cookieStore.set("admin_token", "authorized_cybersteam_admin_session_true", {
+    cookieStore.set("admin_token", "authorized_revolateg_admin_session_true", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

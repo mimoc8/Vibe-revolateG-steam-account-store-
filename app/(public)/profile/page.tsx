@@ -5,8 +5,8 @@ import { resolveProfile } from '@/lib/profile';
 import ProfileForm from './_components/ProfileForm';
 
 export const metadata: Metadata = {
-  title: 'Hồ Sơ Của Tôi · CyberSteam',
-  description: 'Quản lý tài khoản CyberSteam của bạn.',
+  title: 'Hồ Sơ Của Tôi · RevolateG',
+  description: 'Quản lý tài khoản RevolateG của bạn.',
 };
 
 /**

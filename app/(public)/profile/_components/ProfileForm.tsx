@@ -516,7 +516,7 @@ export default function ProfileForm({ profile, purchases }: ProfileFormProps) {
         {/* ── Top breadcrumb badge ──────────────────────────────── */}
         <div className="flex items-center gap-2 mb-8 text-xs font-mono text-neon-cyan uppercase tracking-widest">
           <ShieldCheck size={14} />
-          <span>CyberSteam</span>
+          <span>RevolateG</span>
           <span className="text-text-muted/40">/</span>
           <span className="text-text-muted">Hồ Sơ Của Tôi</span>
         </div>

@@ -8,7 +8,7 @@ import ProductImage from '@/components/ui/ProductImage';
 import CheckoutButton from './_components/CheckoutButton';
 
 export const metadata: Metadata = {
-  title: 'Giỏ Hàng · CyberSteam',
+  title: 'Giỏ Hàng · RevolateG',
   description: 'Xem và quản lý giỏ hàng của bạn.',
 };
 

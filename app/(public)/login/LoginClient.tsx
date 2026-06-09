@@ -44,7 +44,7 @@ function LoginContent() {
 
   /* ── Page title ── */
   useEffect(() => {
-    document.title = 'Đăng Nhập · CyberSteam';
+    document.title = 'Đăng Nhập · RevolateG';
   }, []);
 
 
@@ -78,7 +78,7 @@ function LoginContent() {
       // Browser will navigate away — no further state needed.
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Đã xảy ra lỗi không mong muốn.';
-      console.error(`[CyberSteam] OAuth error (${provider}):`, message);
+      console.error(`[RevolateG] OAuth error (${provider}):`, message);
       setAuthError(message);
       setLoadingProvider(null);
     }
@@ -209,7 +209,7 @@ function LoginContent() {
                 className="font-mono text-3xl font-black tracking-tight text-white"
                 style={{ textShadow: '0 0 24px rgba(0,245,255,0.35)' }}
               >
-                CyberSteam
+                RevolateG
               </h1>
               <p className="mt-2 font-mono text-xs text-gray-500">
                 Chọn phương thức đăng nhập để tiếp tục
@@ -310,7 +310,7 @@ function LoginContent() {
             <span className="text-cyan-700 hover:text-cyan-500 cursor-pointer transition-colors">Điều khoản</span>
             {' & '}
             <span className="text-cyan-700 hover:text-cyan-500 cursor-pointer transition-colors">Chính sách bảo mật</span>
-            {' '}của CyberSteam.
+            {' '}của RevolateG.
           </p>
         </div>
 

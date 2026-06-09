@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { ShoppingCart } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Hướng dẫn mua hàng · CyberSteam',
-  description: 'Cách thức mua hàng và nhận tài khoản tự động trên CyberSteam.',
+  title: 'Hướng dẫn mua hàng · RevolateG',
+  description: 'Cách thức mua hàng và nhận tài khoản tự động trên RevolateG.',
 };
 
 export default function HowToBuyPage() {

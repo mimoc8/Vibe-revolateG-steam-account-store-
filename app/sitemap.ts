@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cybersteam.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://revolateg.vercel.app';
 
   return [
     {

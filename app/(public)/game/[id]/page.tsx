@@ -46,7 +46,7 @@ export async function generateMetadata(props: {
   if (!data) return { title: "Không tìm thấy" };
   return {
     title: data.title,
-    description: data.description ?? `Mua tài khoản ${data.title} trên CyberSteam.`,
+    description: data.description ?? `Mua tài khoản ${data.title} trên RevolateG.`,
   };
 }
 

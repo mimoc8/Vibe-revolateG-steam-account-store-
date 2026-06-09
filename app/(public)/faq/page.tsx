@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { HelpCircle } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Câu hỏi thường gặp · CyberSteam',
-  description: 'Những câu hỏi thường gặp khi mua hàng tại CyberSteam.',
+  title: 'Câu hỏi thường gặp · RevolateG',
+  description: 'Những câu hỏi thường gặp khi mua hàng tại RevolateG.',
 };
 
 export default function FAQPage() {

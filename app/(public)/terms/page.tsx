@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Scale } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Điều khoản dịch vụ · CyberSteam',
-  description: 'Điều khoản sử dụng khi truy cập và mua hàng tại CyberSteam.',
+  title: 'Điều khoản dịch vụ · RevolateG',
+  description: 'Điều khoản sử dụng khi truy cập và mua hàng tại RevolateG.',
 };
 
 export default function TermsPage() {
@@ -22,7 +22,7 @@ export default function TermsPage() {
         <div className="space-y-8 rounded-2xl border border-[var(--color-cyber-border)] bg-[var(--color-cyber-surface)]/60 p-6 font-mono text-sm leading-relaxed text-slate-300 backdrop-blur-md md:p-10 md:text-base">
           <section>
             <h2 className="mb-4 text-lg font-bold text-white">Chấp thuận điều khoản</h2>
-            <p>Khi sử dụng dịch vụ của CyberSteam, bạn mặc nhiên chấp nhận và đồng ý tuân thủ các quy định dưới đây. Nếu bạn không đồng ý, xin vui lòng ngừng sử dụng dịch vụ.</p>
+            <p>Khi sử dụng dịch vụ của RevolateG, bạn mặc nhiên chấp nhận và đồng ý tuân thủ các quy định dưới đây. Nếu bạn không đồng ý, xin vui lòng ngừng sử dụng dịch vụ.</p>
           </section>
 
           <section>
@@ -35,7 +35,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="mb-4 text-lg font-bold text-white">Chính sách xử lý vi phạm</h2>
-            <p>Mọi hành vi gian lận thanh toán, lừa đảo, hoặc cố tình phá hoại hệ thống CyberSteam sẽ bị khóa tài khoản vĩnh viễn và chúng tôi có quyền từ chối cung cấp dịch vụ trong tương lai.</p>
+            <p>Mọi hành vi gian lận thanh toán, lừa đảo, hoặc cố tình phá hoại hệ thống RevolateG sẽ bị khóa tài khoản vĩnh viễn và chúng tôi có quyền từ chối cung cấp dịch vụ trong tương lai.</p>
           </section>
         </div>
       </div>

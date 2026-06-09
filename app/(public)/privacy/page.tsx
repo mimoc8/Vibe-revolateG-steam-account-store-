@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Lock } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Chính sách bảo mật · CyberSteam',
-  description: 'Cam kết bảo mật thông tin người dùng tại CyberSteam.',
+  title: 'Chính sách bảo mật · RevolateG',
+  description: 'Cam kết bảo mật thông tin người dùng tại RevolateG.',
 };
 
 export default function PrivacyPage() {
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="mb-4 text-lg font-bold text-white">2. Bảo vệ thông tin</h2>
-            <p>Mật khẩu của bạn trên hệ thống CyberSteam được mã hóa an toàn 1 chiều và không một ai, kể cả đội ngũ Admin có thể đọc được. Database của chúng tôi được bảo mật với các tiêu chuẩn mã hóa hiện đại nhất.</p>
+            <p>Mật khẩu của bạn trên hệ thống RevolateG được mã hóa an toàn 1 chiều và không một ai, kể cả đội ngũ Admin có thể đọc được. Database của chúng tôi được bảo mật với các tiêu chuẩn mã hóa hiện đại nhất.</p>
           </section>
 
           <section>
