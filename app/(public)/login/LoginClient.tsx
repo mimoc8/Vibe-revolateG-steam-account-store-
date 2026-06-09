@@ -330,5 +330,13 @@ function LoginContent() {
 }
 
 export default function LoginClient() {
-  return <LoginContent />;
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-[#020408]">
+        <Loader2 className="animate-spin text-cyan-400" size={32} />
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
+  );
 }
