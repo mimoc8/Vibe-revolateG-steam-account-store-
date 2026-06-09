@@ -2,30 +2,25 @@ import Link from "next/link";
 
 const FOOTER_LINKS: { heading: string; links: { label: string; href: string }[] }[] = [
   {
-    heading: "About RevolateG",
+    heading: "Về CyberSteam",
     links: [
-      { label: "How It Works", href: "/about" },
-      { label: "Verified Sellers", href: "/verified" },
-      { label: "Security Promise", href: "/security" },
-      { label: "Blog", href: "/blog" },
+      { label: "Giới thiệu", href: "#" },
+      { label: "Hướng dẫn mua hàng", href: "#" },
+      { label: "Chính sách bảo hành", href: "#" },
     ],
   },
   {
-    heading: "Support",
+    heading: "Hỗ trợ khách hàng",
     links: [
-      { label: "Help Center", href: "/help" },
-      { label: "Contact Us", href: "/contact" },
-      { label: "Report an Issue", href: "/report" },
-      { label: "Status", href: "/status" },
+      { label: "Liên hệ hỗ trợ", href: "#" },
+      { label: "Câu hỏi thường gặp", href: "#" },
     ],
   },
   {
-    heading: "Legal",
+    heading: "Pháp lý",
     links: [
-      { label: "Terms of Service", href: "/terms" },
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Cookie Policy", href: "/cookies" },
-      { label: "Refund Policy", href: "/refunds" },
+      { label: "Điều khoản dịch vụ", href: "#" },
+      { label: "Chính sách bảo mật", href: "#" },
     ],
   },
 ];
