@@ -1,6 +1,5 @@
-export const runtime = 'edge';
 import type { Metadata } from 'next';
-import { Mail } from 'lucide-react';
+import { MessageSquare, Mail, MapPin, Send, HelpCircle, PhoneCall } from "lucide-react";
 
 export const metadata: Metadata = {
   title: 'Liên hệ hỗ trợ · RevolateG',

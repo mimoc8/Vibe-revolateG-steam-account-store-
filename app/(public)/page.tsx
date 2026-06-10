@@ -1,5 +1,4 @@
 export const runtime = 'edge';
-// Force dynamic rendering — this page calls cookies() via Supabase server client.
 export const dynamic = "force-dynamic";
 
 import SteamCarousel from "@/components/SteamCarousel";
