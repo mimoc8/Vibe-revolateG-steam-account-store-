@@ -45,7 +45,7 @@ export default async function CartPage() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/');
+    redirect('/login');
   }
 
   /* ── Fetch cart items with joined product data ── */

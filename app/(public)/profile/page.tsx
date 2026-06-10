@@ -31,7 +31,7 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    redirect('/');
+    redirect('/login');
   }
 
   // ── 2. Fetch profile + purchases in parallel ────────────────────────────
