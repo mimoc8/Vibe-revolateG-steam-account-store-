@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import type { Metadata } from 'next';
 import { Info } from 'lucide-react';
 
@@ -55,3 +56,4 @@ export default function AboutPage() {
     </div>
   );
 }
+

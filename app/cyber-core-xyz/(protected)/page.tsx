@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 "use client";
 
 import { useState } from "react";
@@ -110,3 +111,4 @@ function TabButton({
     </button>
   );
 }
+

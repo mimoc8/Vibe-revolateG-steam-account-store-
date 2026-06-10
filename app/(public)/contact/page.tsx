@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import type { Metadata } from 'next';
 import { Mail } from 'lucide-react';
 
@@ -41,3 +42,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

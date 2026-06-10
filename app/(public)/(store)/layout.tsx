@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -14,3 +15,4 @@ export default function StoreLayout({
   // middleware, loading states, or nested layouts.
   return <>{children}</>;
 }
+

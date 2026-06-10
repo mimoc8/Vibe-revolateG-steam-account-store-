@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import type { Metadata } from 'next';
 import { ShieldCheck } from 'lucide-react';
 
@@ -50,3 +51,4 @@ export default function WarrantyPage() {
     </div>
   );
 }
+

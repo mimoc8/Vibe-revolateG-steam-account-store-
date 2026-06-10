@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import type { Metadata } from 'next';
 import { Lock } from 'lucide-react';
 
@@ -39,3 +40,4 @@ export default function PrivacyPage() {
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { notFound } from "next/navigation";
 import { MOCK_DB } from "@/lib/data/accounts";
 import AccountDetailView from "./AccountDetailView";

@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { createClient } from '@/lib/supabase/server';
@@ -98,3 +99,4 @@ export default async function ProfilePage() {
 
   return <ProfileForm profile={profileData} purchases={purchases} />;
 }
+

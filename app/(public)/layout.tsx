@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AuthListener from "@/components/providers/AuthListener";
@@ -62,3 +63,4 @@ export default async function PublicLayout({
     </>
   );
 }
+

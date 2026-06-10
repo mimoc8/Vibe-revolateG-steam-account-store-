@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -290,3 +291,4 @@ export default async function CartPage() {
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import type { Metadata } from 'next';
 import { Scale } from 'lucide-react';
 
@@ -42,3 +43,4 @@ export default function TermsPage() {
     </div>
   );
 }
+

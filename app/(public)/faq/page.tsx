@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import type { Metadata } from 'next';
 import { HelpCircle } from 'lucide-react';
 
@@ -36,3 +37,4 @@ export default function FAQPage() {
     </div>
   );
 }
+

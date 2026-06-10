@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 // Force dynamic rendering — this page calls cookies() via Supabase server client.
 export const dynamic = "force-dynamic";
 
@@ -55,3 +56,4 @@ export default async function HomePage() {
     </main>
   );
 }
+

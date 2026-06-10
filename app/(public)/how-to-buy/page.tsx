@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import type { Metadata } from 'next';
 import { ShoppingCart } from 'lucide-react';
 
@@ -59,3 +60,4 @@ export default function HowToBuyPage() {
     </div>
   );
 }
+
