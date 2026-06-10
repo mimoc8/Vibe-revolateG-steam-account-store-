@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['revolateg.shoprvg.workers.dev', 'localhost:8787', '127.0.0.1:8787'],
+    },
+  },
   images: {
     unoptimized: true,
     remotePatterns: [

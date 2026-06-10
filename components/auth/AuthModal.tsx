@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, Zap, AlertTriangle, Loader2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 
 interface AuthModalProps {
@@ -20,16 +21,12 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const FacebookIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="#1877F2">
-    <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.883v2.271h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
-  </svg>
-);
+
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const supabase = createClient();
   const pathname = usePathname();
-  const [loadingProvider, setLoadingProvider] = useState<'google' | 'facebook' | null>(null);
+  const [loadingProvider, setLoadingProvider] = useState<'google' | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
   /* ── BFCache state reset ────────────────────────────────────────── */
@@ -81,7 +78,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   }, [isOpen, handleKeyDown]);
 
   /* ── OAuth handlers ── */
-  async function signInWith(provider: 'google' | 'facebook') {
+  async function signInWith(provider: 'google') {
     try {
       setAuthError(null);
       setLoadingProvider(provider);
@@ -219,34 +216,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               {loadingProvider === 'google' ? 'Connecting…' : 'Continue with Google'}
             </button>
 
-            {/* Facebook */}
-            <button
-              id="auth-facebook"
-              type="button"
-              disabled={loadingProvider !== null}
-              onClick={() => signInWith('facebook')}
-              className="
-                group relative flex w-full items-center justify-center gap-3
-                overflow-hidden rounded-sm border py-3.5
-                font-mono text-sm font-semibold tracking-wide
-                border-[#1877F2]/40
-                bg-[#1877F2]/10
-                text-[#6fa3f7]
-                transition-all duration-200
-                hover:border-[#1877F2]/80
-                hover:bg-[#1877F2]/20
-                hover:text-white
-                hover:shadow-[0_0_20px_rgba(24,119,242,0.3)]
-                active:scale-[0.98]
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
-              "
-            >
-              <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
-              {loadingProvider === 'facebook'
-                ? <Loader2 size={20} className="animate-spin text-[#6fa3f7]" />
-                : <FacebookIcon />}
-              {loadingProvider === 'facebook' ? 'Connecting…' : 'Continue with Facebook'}
-            </button>
+
           </div>
 
           {/* ── Error Banner ── */}
@@ -277,9 +247,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           {/* Fine print */}
           <p className="text-center font-mono text-[10px] leading-relaxed text-gray-600 px-2">
             By signing in you agree to our{' '}
-            <span className="text-cyan-700 hover:text-cyan-500 cursor-pointer transition-colors">Terms</span>
+            <Link href="/terms" className="text-cyan-700 hover:text-cyan-500 transition-colors" onClick={onClose}>Terms</Link>
             {' & '}
-            <span className="text-cyan-700 hover:text-cyan-500 cursor-pointer transition-colors">Privacy Policy</span>
+            <Link href="/privacy" className="text-cyan-700 hover:text-cyan-500 transition-colors" onClick={onClose}>Privacy Policy</Link>
           </p>
         </div>
 

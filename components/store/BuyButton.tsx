@@ -55,11 +55,11 @@ export default function BuyButton({ itemId }: BuyButtonProps) {
       "
     >
       {isProcessing ? (
-        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+        <Loader2 className="h-3 w-3 shrink-0 animate-spin" aria-hidden="true" />
       ) : (
-        <ShoppingCart className="h-3 w-3" aria-hidden="true" />
+        <ShoppingCart className="h-3 w-3 shrink-0" aria-hidden="true" />
       )}
-      {isProcessing ? 'Đang xử lý...' : 'Mua Ngay'}
+      <span className="truncate">{isProcessing ? 'Đang xử lý...' : 'Mua Ngay'}</span>
     </button>
   );
 }

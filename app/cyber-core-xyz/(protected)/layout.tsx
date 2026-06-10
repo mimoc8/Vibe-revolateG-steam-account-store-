@@ -18,7 +18,9 @@ export default async function AdminLayout({
   const adminToken = cookieStore.get("admin_token");
 
   // Kiểm tra quyền truy cập cục bộ (không dùng Supabase Auth)
-  if (!adminToken || adminToken.value !== "authorized_revolateg_admin_session_true") {
+  const secureToken = process.env.PAYOS_CHECKSUM_KEY ? `admin_${process.env.PAYOS_CHECKSUM_KEY}` : "authorized_revolateg_admin_session_true";
+  
+  if (!adminToken || adminToken.value !== secureToken) {
     redirect('/cyber-core-xyz/login');
   }
 

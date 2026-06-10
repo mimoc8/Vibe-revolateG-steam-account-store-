@@ -99,13 +99,12 @@ export default function UsersTab() {
   }, []);
 
   const handleUpdateStatus = async (userId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('profiles')
-      .update({ status: newStatus })
-      .eq('id', userId);
+    // Gọi Server Action
+    const { updateUserStatusAction } = await import('@/app/cyber-core-xyz/actions');
+    const result = await updateUserStatusAction(userId, newStatus);
 
-    if (error) {
-      alert(`Lỗi: DB chưa có cột 'status'. Vui lòng chạy lệnh SQL để thêm cột này! (${error.message})`);
+    if (!result.success) {
+      alert(`Lỗi khi cập nhật trạng thái: ${result.error}`);
     } else {
       // Optistic UI update to feel instantly responsive
       setUsers(prev => prev.filter(u => newStatus === 'deleted' ? u.id !== userId : true).map(u => u.id === userId ? { ...u, status: newStatus } : u));
@@ -219,13 +218,20 @@ export default function UsersTab() {
                         )}
                         
                         <button 
-                          onClick={() => {
-                            if(confirm(`CẢNH BÁO: Bạn có chắc muốn xóa mềm tài khoản ${user.full_name}? Tài khoản sẽ biến mất khỏi danh sách.`)) {
-                              handleUpdateStatus(user.id, 'deleted');
+                          onClick={async () => {
+                            if(confirm(`CẢNH BÁO: Bạn có chắc muốn xóa HOÀN TOÀN tài khoản ${user.full_name} khỏi database? Hành động này không thể hoàn tác!`)) {
+                              const { deleteUserAction } = await import('@/app/cyber-core-xyz/actions');
+                              const result = await deleteUserAction(user.id);
+                              if (result.success) {
+                                setUsers(prev => prev.filter(u => u.id !== user.id));
+                                alert("Xóa hoàn toàn người dùng thành công!");
+                              } else {
+                                alert("Không thể xóa người dùng: " + result.error);
+                              }
                             }
                           }}
                           className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors" 
-                          title="Xóa người dùng"
+                          title="Xóa hoàn toàn người dùng"
                         >
                           <Trash2 size={18} />
                         </button>

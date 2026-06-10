@@ -3,13 +3,18 @@ import { payos } from '@/lib/payos';
 
 export async function GET(request: Request) {
   try {
-    // Tự động nhận diện đường link của trang web (VD: https://revolateg.vercel.app)
+    // Bảo mật: Yêu cầu Secret Key để gọi API này
+    const { searchParams } = new URL(request.url);
+    const token = searchParams.get('token');
+    
+    if (token !== process.env.PAYOS_CHECKSUM_KEY) {
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Tự động nhận diện đường link của trang web
     const getBaseUrl = () => {
       if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-      if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-      const host = request.headers.get('host') || 'localhost:3000';
-      const protocol = host.includes('localhost') ? 'http' : 'https';
-      return `${protocol}://${host}`;
+      return 'https://revolateg.shoprvg.workers.dev'; // Hardcode fallback an toàn thay vì dùng Host header
     };
     
     const baseUrl = getBaseUrl();

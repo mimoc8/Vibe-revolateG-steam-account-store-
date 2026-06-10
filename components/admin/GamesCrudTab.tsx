@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { UploadCloud, Plus, X, Loader2, Image as ImageIcon, Gamepad2, Database, Edit2, Trash2, Save } from "lucide-react";
+import { createClient } from '@/lib/supabase/client';
 
 type SysReqInfo = {
   os: string;
@@ -27,6 +28,7 @@ export default function GamesCrudTab() {
   const [gamesList, setGamesList] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFetching, setIsFetching] = useState(true);
+  const supabase = createClient();
 
   // CHẾ ĐỘ EDIT
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -66,21 +68,12 @@ export default function GamesCrudTab() {
   const fetchGames = async () => {
     try {
       setIsFetching(true);
-      const dbUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/market_items?select=*&order=created_at.desc`;
+      const { data, error } = await supabase
+        .from('market_items')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      const response = await fetch(dbUrl, {
-        method: 'GET',
-        cache: 'no-store', // CRITICAL: Bypass Next.js cache
-        headers: {
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
-        }
-      });
-
-      if (!response.ok) throw new Error("Không thể tải dữ liệu!");
-      const data = await response.json();
+      if (error) throw new Error("Không thể tải dữ liệu: " + error.message);
       setGamesList(data || []);
     } catch (error) {
       console.error("Lỗi khi tải danh sách game:", error);
@@ -97,25 +90,20 @@ export default function GamesCrudTab() {
   // 2. DELETE (XÓA)
   // ==========================================
   const handleDelete = async (id: string) => {
-    if (!window.confirm("🚨 BẠN CÓ CHẮC CHẮN MUỐN XÓA? Hành động này không thể hoàn tác!")) return;
+    if (!window.confirm("🚨 BẠN CÓ CHẮC CHẮN MUỐN XÓA HOÀN TOÀN TÀI KHOẢN GAME NÀY KHỎI DATABASE? Hành động này không thể hoàn tác!")) return;
 
     try {
-      const dbUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/market_items?id=eq.${id}`;
-      const response = await fetch(dbUrl, {
-        method: 'DELETE',
-        headers: {
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-        }
-      });
+      const { deleteGameAction } = await import('@/app/cyber-core-xyz/actions');
+      const result = await deleteGameAction(id);
 
-      if (!response.ok) throw new Error("Lỗi khi xóa tài khoản!");
+      if (!result.success) throw new Error(result.error);
 
       // Update local state without re-fetching to make UI snappier
       setGamesList(prev => prev.filter(game => game.id !== id));
       router.refresh();
+      alert("Xóa hoàn toàn tài khoản game thành công!");
     } catch (error: any) {
-      alert("Lỗi Xóa: " + error.message);
+      alert("Không thể xóa: " + (error?.message || String(error)));
     }
   };
 
@@ -124,18 +112,12 @@ export default function GamesCrudTab() {
   // ==========================================
   const handleQuickStatus = async (id: string, newStatus: string) => {
     try {
-      const dbUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/market_items?id=eq.${id}`;
-      const response = await fetch(dbUrl, {
-        method: 'PATCH',
-        headers: {
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
+      const { error } = await supabase
+        .from('market_items')
+        .update({ status: newStatus })
+        .eq('id', id);
 
-      if (!response.ok) throw new Error("Không thể cập nhật trạng thái!");
+      if (error) throw new Error(error.message);
 
       // Cập nhật UI ngay lập tức
       setGamesList(prev => prev.map(game => game.id === id ? { ...game, status: newStatus } : game));
@@ -291,25 +273,14 @@ export default function GamesCrudTab() {
         account_password: formData.account_password
       };
 
-      // Quyết định URL và Method dựa vào việc Đang Sửa hay Thêm Mới
-      const dbUrl = editingId
-        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/market_items?id=eq.${editingId}`
-        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/market_items`;
-
-      const method = editingId ? 'PATCH' : 'POST';
-
-      const dbResponse = await fetch(dbUrl, {
-        method: method,
-        headers: {
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!dbResponse.ok) throw new Error(`Lỗi Database!`);
+      // Quyết định thao tác dựa vào việc Đang Sửa hay Thêm Mới
+      if (editingId) {
+        const { error } = await supabase.from('market_items').update(payload).eq('id', editingId);
+        if (error) throw new Error(error.message);
+      } else {
+        const { error } = await supabase.from('market_items').insert(payload);
+        if (error) throw new Error(error.message);
+      }
 
       alert(editingId ? "🎉 CẬP NHẬT TÀI KHOẢN THÀNH CÔNG!" : "🎉 TÀI KHOẢN GAME ĐÃ ĐƯỢC THÊM!");
 

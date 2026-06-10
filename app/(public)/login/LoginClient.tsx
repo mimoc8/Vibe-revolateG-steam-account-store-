@@ -23,11 +23,7 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const FacebookIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="#1877F2">
-    <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.883v2.271h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
-  </svg>
-);
+
 
 /* ── Animated cyberpunk particles in the background ── */
 const PARTICLES = Array.from({ length: 24 }, (_, i) => i);
@@ -39,7 +35,7 @@ function LoginContent() {
   // Falls back to '/' so authenticated users always land somewhere safe.
   const nextPath = searchParams.get('next') ?? '/';
 
-  const [loadingProvider, setLoadingProvider] = useState<'google' | 'facebook' | null>(null);
+  const [loadingProvider, setLoadingProvider] = useState<'google' | null>(null);
   const [authError,       setAuthError]       = useState<string | null>(null);
 
   /* ── Page title ── */
@@ -60,7 +56,7 @@ function LoginContent() {
   }, []);
 
   /* ── OAuth sign-in ── */
-  async function signInWith(provider: 'google' | 'facebook') {
+  async function signInWith(provider: 'google') {
     try {
       setAuthError(null);
       setLoadingProvider(provider);
@@ -253,37 +249,7 @@ function LoginContent() {
               </span>
             </button>
 
-            {/* Facebook */}
-            <button
-              id="login-facebook"
-              type="button"
-              disabled={loadingProvider !== null}
-              onClick={() => signInWith('facebook')}
-              className="
-                group relative flex w-full items-center justify-center gap-3
-                overflow-hidden py-3.5
-                font-mono text-sm font-semibold tracking-wide
-                text-[#6fa3f7]
-                transition-all duration-200
-                hover:text-white
-                hover:shadow-[0_0_24px_rgba(24,119,242,0.3)]
-                active:scale-[0.98]
-                disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none
-              "
-              style={{
-                borderRadius: '2px',
-                border: '1px solid rgba(24,119,242,0.35)',
-                background: 'rgba(24,119,242,0.08)',
-              }}
-            >
-              <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
-              {loadingProvider === 'facebook'
-                ? <Loader2 size={20} className="animate-spin text-[#6fa3f7]" />
-                : <FacebookIcon />}
-              <span>
-                {loadingProvider === 'facebook' ? 'Đang kết nối…' : 'Đăng nhập với Facebook'}
-              </span>
-            </button>
+
           </div>
 
           {/* ── Error banner ── */}
@@ -307,9 +273,9 @@ function LoginContent() {
           {/* Fine print */}
           <p className="text-center font-mono text-[10px] leading-relaxed text-gray-600 px-2">
             Khi đăng nhập, bạn đồng ý với{' '}
-            <span className="text-cyan-700 hover:text-cyan-500 cursor-pointer transition-colors">Điều khoản</span>
+            <Link href="/terms" className="text-cyan-700 hover:text-cyan-500 transition-colors">Điều khoản</Link>
             {' & '}
-            <span className="text-cyan-700 hover:text-cyan-500 cursor-pointer transition-colors">Chính sách bảo mật</span>
+            <Link href="/privacy" className="text-cyan-700 hover:text-cyan-500 transition-colors">Chính sách bảo mật</Link>
             {' '}của RevolateG.
           </p>
         </div>

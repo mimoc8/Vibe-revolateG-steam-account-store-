@@ -10,24 +10,23 @@ export default function TrafficTracker() {
   );
 
   useEffect(() => {
-    // Không đếm lượt truy cập và presence của trang Admin
-    if (window.location.pathname.startsWith('/admin')) {
-      return;
-    }
+    const isAdmin = window.location.pathname.startsWith('/cyber-core-xyz');
 
-    const trackVisit = async () => {
-      const { error } = await supabase
-        .from('page_views')
-        .insert([{ 
-          path: window.location.pathname,
-          created_at: new Date().toISOString() 
-        }]);
-        
-      if (error) {
-        console.error("🔥 Error logging page view:", JSON.stringify(error));
-      }
-    };
-    trackVisit();
+    if (!isAdmin) {
+      const trackVisit = async () => {
+        const { error } = await supabase
+          .from('page_views')
+          .insert([{ 
+            path: window.location.pathname,
+            created_at: new Date().toISOString() 
+          }]);
+          
+        if (error) {
+          console.error("🔥 Error logging page view:", JSON.stringify(error));
+        }
+      };
+      trackVisit();
+    }
 
     const room = supabase.channel('online-users');
     
@@ -41,7 +40,9 @@ export default function TrafficTracker() {
 
     room.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
-        await room.track({ online_at: new Date().toISOString() });
+        if (!isAdmin) {
+          await room.track({ online_at: new Date().toISOString() });
+        }
       }
     });
 

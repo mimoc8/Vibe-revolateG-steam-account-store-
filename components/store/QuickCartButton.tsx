@@ -93,7 +93,7 @@ export default function QuickCartButton({ itemId }: QuickCartButtonProps) {
       disabled={state === 'loading' || state === 'added'}
       onClick={handleClick}
       className={`
-        relative mt-1 flex h-[38px] w-[38px] shrink-0 items-center justify-center
+        relative flex h-[38px] w-[38px] shrink-0 items-center justify-center
         rounded-md border
         font-mono transition-all duration-200
         disabled:pointer-events-none

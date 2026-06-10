@@ -198,7 +198,7 @@ export default async function GameDetailPage(props: {
       <Link
         href="/"
         className="
-          fixed left-4 top-20 z-50
+          fixed left-4 bottom-6 md:top-24 md:bottom-auto z-50
           inline-flex items-center gap-2 rounded-lg px-3 py-2
           font-mono text-xs uppercase tracking-widest
           border border-gray-700/80
@@ -219,7 +219,8 @@ export default async function GameDetailPage(props: {
       </Link>
 
       {/* ── 2-Column Detail Layout ── */}
-      <div className="mx-auto max-w-7xl px-4 pt-6 md:px-8">
+      <div className="mx-auto max-w-7xl px-4 pt-6 md:px-8 flex flex-col gap-6">
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* LEFT COLUMN: Carousel */}

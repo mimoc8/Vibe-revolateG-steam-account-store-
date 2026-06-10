@@ -19,7 +19,7 @@ export async function processCheckout(): Promise<CheckoutResult> {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    throw new Error('UNAUTHORIZED: Vui lòng đăng nhập để thanh toán.');
+    return { error: 'UNAUTHORIZED: Vui lòng đăng nhập để thanh toán.' };
   }
 
   /* ── 2. Fetch cart items with prices ── */
@@ -42,6 +42,17 @@ export async function processCheckout(): Promise<CheckoutResult> {
 
   if (subtotal <= 0) {
      return { error: 'Giá trị giỏ hàng không hợp lệ' };
+  }
+
+  /* ── Anti-Spam Check ── */
+  const { count: pendingCount } = await supabase
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'pending');
+
+  if ((pendingCount ?? 0) >= 3) {
+    return { error: 'Bạn đang có 3 đơn hàng chưa thanh toán. Vui lòng thanh toán hoặc hủy các đơn cũ trước khi mua thêm để tránh kẹt hệ thống.' };
   }
 
   // Tạo orderCode cho PayOS (number <= 9007199254740991)
@@ -108,7 +119,7 @@ export async function processDirectCheckout(itemId: string): Promise<CheckoutRes
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    throw new Error('UNAUTHORIZED: Vui lòng đăng nhập để thanh toán.');
+    return { error: 'UNAUTHORIZED: Vui lòng đăng nhập để thanh toán.' };
   }
 
   /* ── 2. Fetch single item price ── */
@@ -126,6 +137,17 @@ export async function processDirectCheckout(itemId: string): Promise<CheckoutRes
   const subtotal = item.price;
   if (subtotal <= 0) {
      return { error: 'Giá trị sản phẩm không hợp lệ' };
+  }
+
+  /* ── Anti-Spam Check ── */
+  const { count: pendingCount } = await supabase
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('status', 'pending');
+
+  if ((pendingCount ?? 0) >= 3) {
+    return { error: 'Bạn đang có 3 đơn hàng chưa thanh toán. Vui lòng thanh toán hoặc hủy các đơn cũ trước khi mua thêm để tránh kẹt hệ thống.' };
   }
 
   // Tạo orderCode cho PayOS (number <= 9007199254740991)

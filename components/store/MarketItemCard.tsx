@@ -220,7 +220,7 @@ export default function MarketItemCard({ item, isOwned }: MarketItemCardProps) {
         ) : (
           /* flex row: BuyButton fills available space, QuickCartButton is fixed-square */
           <div className="mt-1 flex items-stretch gap-2">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <BuyButton itemId={id} />
             </div>
             <QuickCartButton itemId={id} />

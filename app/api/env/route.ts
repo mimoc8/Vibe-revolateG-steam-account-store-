@@ -1,0 +1,1 @@
+import { NextResponse } from "next/server"; export const dynamic = "force-dynamic"; export async function GET() { return NextResponse.json({ supabase: process.env.NEXT_PUBLIC_SUPABASE_URL, payos: process.env.PAYOS_CLIENT_ID, keys: Object.keys(process.env) }); }

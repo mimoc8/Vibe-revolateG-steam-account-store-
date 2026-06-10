@@ -17,7 +17,8 @@ export async function loginAdmin(formData: FormData) {
   if (email === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
     // Nếu đúng thông tin, set một cookie HTTP-Only tên là 'admin_token'
     const cookieStore = await cookies();
-    cookieStore.set("admin_token", "authorized_revolateg_admin_session_true", {
+    const secureToken = process.env.PAYOS_CHECKSUM_KEY ? `admin_${process.env.PAYOS_CHECKSUM_KEY}` : "authorized_revolateg_admin_session_true";
+    cookieStore.set("admin_token", secureToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
