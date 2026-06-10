@@ -1,17 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import TrafficTracker from "@/components/TrafficTracker";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -34,9 +23,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased font-sans"
     >
-      <body className="flex min-h-full flex-col" suppressHydrationWarning>
+      <body className="flex min-h-full flex-col font-sans bg-[var(--color-cyber-black)]" suppressHydrationWarning>
         <TrafficTracker />
         {children}
       </body>

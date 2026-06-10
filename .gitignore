@@ -41,3 +41,10 @@ next-env.d.ts
 CLAUDE.md
 AGENTS.md
 .claude
+# OpenNext
+.open-next
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example

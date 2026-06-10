@@ -1,5 +1,4 @@
 "use client";
-export const runtime = 'edge';
 
 import { useState } from "react";
 import { LayoutDashboard, Gamepad2, ArrowRightLeft, Users } from "lucide-react";
