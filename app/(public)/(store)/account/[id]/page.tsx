@@ -19,7 +19,4 @@ export default async function AccountDetailPage({ params }: PageProps) {
   return <AccountDetailView account={account} />;
 }
 
-// Generate static params for the known mock accounts so Next.js can pre-render them
-export function generateStaticParams() {
-  return Object.keys(MOCK_DB).map((id) => ({ id }));
-}
+
