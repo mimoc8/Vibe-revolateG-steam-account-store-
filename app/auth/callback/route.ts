@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
@@ -40,3 +41,4 @@ export async function GET(request: Request) {
   // Return the user to an error page with some instructions
   return NextResponse.redirect(`${origin}/login?error=auth-callback-failed`)
 }
+

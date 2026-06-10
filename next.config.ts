@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    unoptimized: true,
     remotePatterns: [
       // Steam CDN — game cover images
       { protocol: 'https', hostname: 'shared.akamai.steamstatic.com' },

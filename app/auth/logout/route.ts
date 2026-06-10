@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -33,3 +34,4 @@ export async function GET(request: Request) {
   // Force a hard redirect back to the login page
   return NextResponse.redirect(new URL('/login', requestUrl.origin))
 }
+
