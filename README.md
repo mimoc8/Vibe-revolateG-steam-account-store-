@@ -1,10 +1,16 @@
 # 🌌 RevolateG — Premium Game Account Marketplace
 
+
+
 ![RevolateG Banner](https://via.placeholder.com/1200x400/0d0d14/6366f1?text=RevolateG+-+Premium+Game+Account+Marketplace)
+
+Get the Full Premium Version with Database setup and PayOS integration here: https://luzmiforever.gumroad.com/l/vlvxlv
 
 **RevolateG** is a modern, high-performance, and secure e-commerce platform built specifically for trading and managing premium game accounts (Steam, Epic Games, etc.). The platform features a highly polished user interface with an elegant Indigo theme, ensuring a professional and refined user experience.
 
 Built entirely with the bleeding-edge Next.js 15 App Router, React 19, Cloudflare Workers, PayOS, and Supabase.
+
+
 
 ---
 
