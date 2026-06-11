@@ -440,6 +440,33 @@ export default function GamesCrudTab() {
             <textarea required rows={4} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-500 font-mono resize-y" />
           </div>
 
+          {/* Cấu hình hệ thống */}
+          <div className="space-y-4 bg-white/5 border border-white/10 p-6 rounded-xl">
+            <h3 className="text-sm font-bold text-cyan-400 flex items-center gap-2"><Gamepad2 size={16} /> CẤU HÌNH HỆ THỐNG YÊU CẦU</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-400 font-bold uppercase">Hệ điều hành (OS)</label>
+                <input type="text" value={sysReq.os} onChange={e => setSysReq({...sysReq, os: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 font-mono" placeholder="Ví dụ: Windows 10 64-bit" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-400 font-bold uppercase">Bộ vi xử lý (CPU)</label>
+                <input type="text" value={sysReq.cpu} onChange={e => setSysReq({...sysReq, cpu: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 font-mono" placeholder="Ví dụ: Intel Core i5-4460" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-400 font-bold uppercase">Bộ nhớ (RAM)</label>
+                <input type="text" value={sysReq.ram} onChange={e => setSysReq({...sysReq, ram: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 font-mono" placeholder="Ví dụ: 8 GB RAM" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-400 font-bold uppercase">Đồ họa (GPU)</label>
+                <input type="text" value={sysReq.gpu} onChange={e => setSysReq({...sysReq, gpu: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 font-mono" placeholder="Ví dụ: NVIDIA GTX 760" />
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs text-gray-400 font-bold uppercase">Lưu trữ (Storage)</label>
+                <input type="text" value={sysReq.storage} onChange={e => setSysReq({...sysReq, storage: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-500 font-mono" placeholder="Ví dụ: 50 GB" />
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4 bg-white/5 border border-cyan-500/30 p-6 rounded-xl border-dashed">
               <div className="flex justify-between items-center">
