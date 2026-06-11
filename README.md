@@ -4,6 +4,9 @@
 
 ![RevolateG Banner](https://via.placeholder.com/1200x400/0d0d14/6366f1?text=RevolateG+-+Premium+Game+Account+Marketplace)
 
+**🌍 Live Preview:** [https://revolateg.shoprvg.workers.dev](https://revolateg.shoprvg.workers.dev/)
+**🔒 Admin Dashboard Preview:** [https://revolateg.shoprvg.workers.dev/cyber-core-xyz](https://revolateg.shoprvg.workers.dev/cyber-core-xyz)
+
 Get the Full Premium Version with Database setup and PayOS integration here: https://luzmiforever.gumroad.com/l/vlvxlv
 
 **RevolateG** is a modern, high-performance, and secure e-commerce platform built specifically for trading and managing premium game accounts (Steam, Epic Games, etc.). The platform features a highly polished user interface with an elegant Indigo theme, ensuring a professional and refined user experience.
